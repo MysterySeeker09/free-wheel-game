@@ -150,7 +150,7 @@
 
     function updateButtonAndDisplay() {
         const remaining = MAX_SPINS - spinsUsed;
-        remainingEl.textContent = remaining;
+        remainingEl.textContent = `${remaining} / ${MAX_SPINS}`;   // Fixed: always shows "X / 3"
         btn.disabled = remaining <= 0;
         btn.textContent = remaining > 0 ? "SPIN NOW!" : "No Spins Left 😔";
     }
@@ -194,9 +194,9 @@
                 localStorage.setItem(STORAGE_KEY, spinsUsed);
                 updateButtonAndDisplay();
 
-                // Shortened text = much faster on Android Messenger
+                // Short pre-fill text (helps Android Messenger open faster)
                 const prefillText = encodeURIComponent(
-                    `I won ${currentPrize} on your wheel! My details: `
+                    `I won ${currentPrize} on your wheel! Details: `
                 );
                 claimLink.href = `https://m.me/FreeIphonesandTablets?text=${prefillText}`;
                 claimSection.style.display = 'block';
