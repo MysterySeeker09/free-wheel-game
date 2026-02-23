@@ -125,7 +125,7 @@
         This promotion is not sponsored, endorsed, or administered by Meta/Facebook. Open to US residents 18+. Only pay if the prize is guaranteed by the page admin. Void where prohibited. Winners contact via Messenger for verification. Full rules: [link to your rules if you have one].
     </p>
 
-  <script>
+<script>
     const prizes = [
         "iPhone 15 Pro Max", "iPhone 15 Pro Max",
         "iPhone 17 Pro Max", "iPhone 17 Pro Max",
@@ -136,7 +136,7 @@
         "HP Laptop",
         "Dell Laptop"
     ];
-
+    
     const wheel = document.getElementById('wheel');
     const btn = document.getElementById('spinBtn');
     const result = document.getElementById('result');
@@ -144,7 +144,6 @@
     const claimSection = document.getElementById('claimSection');
     const claimLink = document.getElementById('claimLink');
 
-    // Use localStorage for per-browser spin count
     const STORAGE_KEY = 'wheel_spins_used';
     let spinsUsed = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
     const MAX_SPINS = 3;
@@ -168,39 +167,40 @@
             const res = await fetch('/spin', { method: 'POST' });
             const data = await res.json();
 
-            if (data.error) {
-                result.textContent = data.error;
-            } else {
-                const randomExtra = Math.floor(Math.random() * 5) + 5;
-                const prizeIndex = prizes.indexOf(data.prize);
-                const degPerPrize = 360 / prizes.length;
-                const stopAngle = 360 - (prizeIndex * degPerPrize + degPerPrize / 2) + (randomExtra * 360);
-
-                wheel.style.transform = `rotate(${stopAngle}deg)`;
-
-                setTimeout(() => {
-                    let currentPrize = data.prize;
-                    result.innerHTML = `You WON:<br><strong style="color:#0f0; font-size:1.8em;">${data.prize}!</strong> 🎉🔥`;
-                    confetti({
-                        particleCount: 120,
-                        spread: 80,
-                        origin: { y: 0.6 },
-                        resize: true
-                    });
-
-                    // Increment local spin count
-                    spinsUsed++;
-                    localStorage.setItem(STORAGE_KEY, spinsUsed);
-                    updateButtonAndDisplay();
-
-                    // Dynamic Messenger pre-fill
-                    const prefillText = encodeURIComponent(
-                        `I just won ${currentPrize} on your Free Iphones and Tablets wheel spin game! Please help me claim it. My details: `
-                    );
-                    claimLink.href = `https://m.me/FreeIphonesandTablets?text=${prefillText}`;
-                    claimSection.style.display = 'block';
-                }, 5000);
+            if (!data.success) {
+                result.textContent = "Error spinning — try again.";
+                return;
             }
+
+            const randomExtra = Math.floor(Math.random() * 5) + 5;
+            const prizeIndex = prizes.indexOf(data.prize);
+            const degPerPrize = 360 / prizes.length;
+            const stopAngle = 360 - (prizeIndex * degPerPrize + degPerPrize / 2) + (randomExtra * 360);
+
+            wheel.style.transform = `rotate(${stopAngle}deg)`;
+
+            setTimeout(() => {
+                const currentPrize = data.prize;
+                result.innerHTML = `You WON:<br><strong style="color:#0f0; font-size:1.8em;">${currentPrize}!</strong> 🎉🔥`;
+
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    resize: true
+                });
+
+                spinsUsed++;
+                localStorage.setItem(STORAGE_KEY, spinsUsed);
+                updateButtonAndDisplay();
+
+                // Shortened text = much faster on Android Messenger
+                const prefillText = encodeURIComponent(
+                    `I won ${currentPrize} on your wheel! My details: `
+                );
+                claimLink.href = `https://m.me/FreeIphonesandTablets?text=${prefillText}`;
+                claimSection.style.display = 'block';
+            }, 5000);
         } catch (err) {
             result.textContent = "Oops! Error spinning — try again.";
         } finally {
