@@ -11,113 +11,22 @@
     <title>Free Iphones and Tablets - Wheel Spin Game</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            background: #111; 
-            color: white; 
-            margin: 0; 
-            padding: 20px; 
-            min-height: 100vh; 
-        }
+        body { font-family: Arial, sans-serif; text-align: center; background: #111; color: white; margin: 0; padding: 20px; min-height: 100vh; }
         h1 { color: #0f0; margin-bottom: 10px; font-size: 2em; }
         h2 { color: #0f0; }
-        #wheel { 
-            width: 90vw; 
-            max-width: 400px; 
-            height: 90vw; 
-            max-height: 400px; 
-            margin: 25px auto; 
-            border-radius: 50%; 
-            border: 8px solid #333; 
-            background: conic-gradient(
-                #ff0000 0deg 32.727deg, #00ff00 32.727deg 65.455deg, #0000ff 65.455deg 98.182deg,
-                #ffff00 98.182deg 130.909deg, #ff00ff 130.909deg 163.636deg, #00ffff 163.636deg 196.364deg,
-                #ffa500 196.364deg 229.091deg, #800080 229.091deg 261.818deg, #008000 261.818deg 294.545deg,
-                #ff69b4 294.545deg 327.273deg, #4b0082 327.273deg 360deg
-            ); 
-            position: relative; 
-            overflow: hidden; 
-            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); 
-            box-shadow: 0 0 30px rgba(0,255,0,0.3);
-        }
-        #pointer { 
-            position: absolute; 
-            top: -30px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 0; 
-            height: 0; 
-            border-left: 20px solid transparent; 
-            border-right: 20px solid transparent; 
-            border-bottom: 40px solid #fff; 
-            z-index: 10; 
-        }
-        #result { 
-            font-size: 2em; 
-            margin: 25px 10px; 
-            color: #ff0; 
-            font-weight: bold; 
-            min-height: 90px; 
-            line-height: 1.3;
-        }
-        button { 
-            padding: 16px 50px; 
-            font-size: 1.6em; 
-            background: #0f0; 
-            color: black; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            margin: 12px; 
-            transition: background 0.3s, transform 0.1s;
-        }
-        button:hover:not(:disabled) { 
-            background: #0c0; 
-            transform: scale(1.05); 
-        }
-        button:disabled { 
-            background: #555; 
-            cursor: not-allowed; 
-        }
-        #info { 
-            font-size: 1.3em; 
-            margin-bottom: 18px; 
-            font-weight: 600;
-        }
-        #remaining {
-            font-weight: 600;           /* semi-bold, unique but not too heavy */
-            color: #0f0;
-            font-size: 1.4em;
-        }
-        #claimSection { 
-            display: none; 
-            margin: 35px auto; 
-            max-width: 520px; 
-            padding: 22px; 
-            background: rgba(0,0,0,0.5); 
-            border-radius: 16px; 
-            border: 2px solid #0084ff;
-        }
-        #claimBtn { 
-            background: #0084ff; 
-            color: white; 
-            font-size: 1.5em; 
-            padding: 20px 60px; 
-        }
+        #wheel { width: 90vw; max-width: 400px; height: 90vw; max-height: 400px; margin: 25px auto; border-radius: 50%; border: 8px solid #333; background: conic-gradient(#ff0000 0deg 32.727deg, #00ff00 32.727deg 65.455deg, #0000ff 65.455deg 98.182deg, #ffff00 98.182deg 130.909deg, #ff00ff 130.909deg 163.636deg, #00ffff 163.636deg 196.364deg, #ffa500 196.364deg 229.091deg, #800080 229.091deg 261.818deg, #008000 261.818deg 294.545deg, #ff69b4 294.545deg 327.273deg, #4b0082 327.273deg 360deg); position: relative; overflow: hidden; transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1); box-shadow: 0 0 30px rgba(0,255,0,0.3); }
+        #pointer { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid #fff; z-index: 10; }
+        #result { font-size: 2em; margin: 25px 10px; color: #ff0; font-weight: bold; min-height: 90px; line-height: 1.3; }
+        button { padding: 16px 50px; font-size: 1.6em; background: #0f0; color: black; border: none; border-radius: 12px; cursor: pointer; margin: 12px; transition: background 0.3s, transform 0.1s; }
+        button:hover:not(:disabled) { background: #0c0; transform: scale(1.05); }
+        button:disabled { background: #555; cursor: not-allowed; }
+        #info { font-size: 1.3em; margin-bottom: 18px; font-weight: 600; }
+        #remaining { font-weight: 600; color: #0f0; font-size: 1.4em; }
+        #claimSection { display: none; margin: 35px auto; max-width: 520px; padding: 22px; background: rgba(0,0,0,0.5); border-radius: 16px; border: 2px solid #0084ff; }
+        #claimBtn { background: #0084ff; color: white; font-size: 1.5em; padding: 20px 60px; }
         #claimBtn:hover { background: #0066cc; }
-        .disclaimer {
-            font-size: 0.85em; 
-            color: #aaa; 
-            margin-top: 45px; 
-            line-height: 1.5;
-            padding: 0 10px;
-        }
-        @media (max-width: 500px) {
-            #wheel { width: 300px; height: 300px; margin: 20px auto; }
-            button { font-size: 1.4em; padding: 14px 40px; }
-            h1 { font-size: 1.8em; }
-        }
+        .disclaimer { font-size: 0.85em; color: #aaa; margin-top: 45px; line-height: 1.5; padding: 0 10px; }
+        @media (max-width: 500px) { #wheel { width: 300px; height: 300px; margin: 20px auto; } button { font-size: 1.4em; padding: 14px 40px; } h1 { font-size: 1.8em; } }
     </style>
 </head>
 <body>
@@ -131,37 +40,25 @@
     <button id="spinBtn">SPIN NOW!</button>
     <div id="result"></div>
 
-    <!-- Claim section -->
     <div id="claimSection">
         <h2>🎉 You Won! Claim Your Prize</h2>
-        <p>Click below to open Messenger with a pre-filled message (including your prize). Add your full name, phone number, delivery address, and any other details, then send it to us at Free Iphones and Tablets!</p>
+        <p>Click below to open Messenger with a pre-filled message. Add your name, phone, address, then send!</p>
         <a id="claimLink" href="#" target="_blank" rel="noopener noreferrer">
-            <button id="claimBtn">Open Messenger & Claim Now</button>
+            <button id="claimBtn">Open Messenger & Claim</button>
         </a>
-        <p style="font-size:0.9em; margin-top:15px; color:#ccc;">
-            We'll verify your win and arrange delivery as soon as possible. Only share personal info in this private chat!
-        </p>
+        <p style="font-size:0.9em; margin-top:15px; color:#ccc;">We'll verify and arrange delivery fast!</p>
     </div>
 
-    <!-- Sound effects - placed here for early loading -->
+    <!-- Sound effects -->
     <audio id="spinSound" src="spin.mp3" preload="auto"></audio>
     <audio id="winSound" src="win.mp3" preload="auto"></audio>
 
     <p class="disclaimer">
-        This promotion is not sponsored, endorsed, or administered by Meta/Facebook. Open to US residents 18+. Only pay if the prize is guaranteed by the page admin. Void where prohibited. Winners contact via Messenger for verification. Full rules: [link to your rules if you have one].
+        This promotion is not sponsored, endorsed, or administered by Meta/Facebook. Open to US residents 18+. Only pay if prize is guaranteed by page admin. Void where prohibited. Winners contact via Messenger for verification.
     </p>
 
     <script>
-        const prizes = [
-            "iPhone 15 Pro Max", "iPhone 15 Pro Max",
-            "iPhone 17 Pro Max", "iPhone 17 Pro Max",
-            "iPhone 16",
-            "Samsung Tablet",
-            "iPad", "iPad",
-            "MacBook Pro",
-            "HP Laptop",
-            "Dell Laptop"
-        ];
+        const prizes = ["iPhone 15 Pro Max", "iPhone 15 Pro Max", "iPhone 17 Pro Max", "iPhone 17 Pro Max", "iPhone 16", "Samsung Tablet", "iPad", "iPad", "MacBook Pro", "HP Laptop", "Dell Laptop"];
         
         const wheel = document.getElementById('wheel');
         const btn = document.getElementById('spinBtn');
@@ -176,27 +73,32 @@
         let spinsUsed = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
         const MAX_SPINS = 3;
 
-        // Set comfortable volume
         spinAudio.volume = 0.7;
         winAudio.volume = 0.7;
 
         function updateButtonAndDisplay() {
             const remaining = MAX_SPINS - spinsUsed;
-            remainingEl.innerHTML = `${remaining} / ${MAX_SPINS}`;  // Fixed: correct format + semi-bold via CSS
+            remainingEl.innerHTML = `${remaining} / ${MAX_SPINS}`;
             btn.disabled = remaining <= 0;
             btn.textContent = remaining > 0 ? "SPIN NOW!" : "No Spins Left 😔";
         }
         updateButtonAndDisplay();
 
+        // Unlock audio on first user interaction (helps mobile browsers)
+        document.body.addEventListener('touchstart', function unlockAudio() {
+            spinAudio.play().then(() => spinAudio.pause()).catch(() => {});
+            winAudio.play().then(() => winAudio.pause()).catch(() => {});
+            document.body.removeEventListener('touchstart', unlockAudio);
+        }, { once: true });
+
         btn.addEventListener('click', async () => {
             if (spinsUsed >= MAX_SPINS) return;
 
-            // Play spin sound right after tap (user interaction → allowed)
             spinAudio.currentTime = 0;
             spinAudio.play().catch(e => console.log("Spin sound blocked:", e));
 
             btn.disabled = true;
-            result.textContent = "Spinning the wheel... 🎰";
+            result.textContent = "Spinning... 🎰";
             claimSection.style.display = 'none';
 
             try {
@@ -204,7 +106,7 @@
                 const data = await res.json();
 
                 if (!data.success) {
-                    result.textContent = "Error spinning — try again.";
+                    result.textContent = "Error — try again.";
                     return;
                 }
 
@@ -217,16 +119,10 @@
 
                 setTimeout(() => {
                     const currentPrize = data.prize;
-                    result.innerHTML = `You WON:<br><strong style="color:#0f0; font-size:1.8em;">${currentPrize}!</strong> 🎉🔥`;
+                    result.innerHTML = `You WON:<br><strong style="color:#0f0;font-size:1.8em;">${currentPrize}!</strong> 🎉🔥`;
 
-                    confetti({
-                        particleCount: 120,
-                        spread: 80,
-                        origin: { y: 0.6 },
-                        resize: true
-                    });
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, resize: true });
 
-                    // Play win sound exactly when prize is shown
                     winAudio.currentTime = 0;
                     winAudio.play().catch(e => console.log("Win sound blocked:", e));
 
@@ -234,15 +130,12 @@
                     localStorage.setItem(STORAGE_KEY, spinsUsed);
                     updateButtonAndDisplay();
 
-                    // Short pre-fill text for fast Android Messenger loading
-                    const prefillText = encodeURIComponent(
-                        `I won ${currentPrize} on your wheel! Details: `
-                    );
+                    const prefillText = encodeURIComponent(`I won ${currentPrize} on your wheel! Details: `);
                     claimLink.href = `https://m.me/FreeIphonesandTablets?text=${prefillText}`;
                     claimSection.style.display = 'block';
                 }, 5000);
             } catch (err) {
-                result.textContent = "Oops! Error spinning — try again.";
+                result.textContent = "Oops! Error — try again.";
             } finally {
                 setTimeout(() => { btn.disabled = false; }, 6000);
             }
