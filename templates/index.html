@@ -1,427 +1,914 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#f5c842">
-    <link rel="manifest" href="/manifest.json">
-    <title>🎡 Spin & Win — Free iPhones & Tablets!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <style>
-        :root {
-            --gold: #f5c842; --gold-dark: #d4a017;
-            --bg: #0a0a12; --surface: #13131f; --surface2: #1c1c2e;
-            --green: #00e676; --blue: #2979ff;
-            --text: #f0eeff; --muted: #7a78a0;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Nunito', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background:
-                radial-gradient(ellipse at 20% 20%, rgba(41,121,255,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(245,200,66,0.06) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(0,230,118,0.04) 0%, transparent 60%);
-            pointer-events: none; z-index: 0;
-        }
-        .page-wrap {
-            position: relative; z-index: 1;
-            width: 100%; max-width: 580px;
-            padding: 24px 16px 40px;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .header { text-align: center; margin-bottom: 16px; animation: fadeDown 0.7s ease both; }
-        .header-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: #1a0a00; font-size: 0.7em; font-weight: 900;
-            letter-spacing: 2px; text-transform: uppercase;
-            padding: 4px 14px; border-radius: 20px; margin-bottom: 10px;
-        }
-        h1 {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(2.4em, 8vw, 3.6em);
-            letter-spacing: 2px; line-height: 1;
-            background: linear-gradient(135deg, #fff 30%, var(--gold) 70%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; margin-bottom: 6px;
-        }
-        .subtitle { font-size: 0.95em; color: var(--muted); font-weight: 600; }
-        .spins-bar {
-            display: flex; align-items: center; gap: 10px;
-            margin-bottom: 18px;
-            background: var(--surface);
-            border: 1px solid rgba(245,200,66,0.15);
-            border-radius: 50px; padding: 8px 20px;
-            animation: fadeDown 0.8s 0.1s ease both;
-        }
-        .spins-label { font-size: 0.85em; color: var(--muted); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-        .spins-dots { display: flex; gap: 8px; }
-        .spin-dot {
-            width: 14px; height: 14px; border-radius: 50%;
-            background: var(--gold); box-shadow: 0 0 12px rgba(245,200,66,0.6);
-            transition: all 0.4s ease;
-        }
-        .spin-dot.used { background: #333; box-shadow: none; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#f5c842" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>🎡 Spin &amp; Win — Free iPhones &amp; Tablets!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --gold:#f5c842; --gold-dark:#d4a017; --gold-light:#fff3c0;
+      --bg:#080810; --surface:#111120; --surface2:#18182a; --surface3:#20203a;
+      --green:#00e676; --blue:#4a9eff; --purple:#a855f7;
+      --text:#f0eeff; --muted:#6a688a; --border:rgba(255,255,255,0.07);
+      --shadow-gold:0 0 30px rgba(245,200,66,0.35);
+      --radius:18px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'Nunito',sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; overflow-x:hidden;
+    }
 
-        .wheel-wrap {
-            position: relative;
-            width: min(88vw, 400px); height: min(88vw, 400px);
-            margin-bottom: 8px;
-            animation: fadeUp 0.9s 0.2s ease both;
-        }
-        .wheel-ring {
-            position: absolute; inset: -10px; border-radius: 50%;
-            background: conic-gradient(#ff4757,#ffa502,#2ed573,#1e90ff,#ff6b81,#eccc68,#7bed9f,#70a1ff,#ff4757,#ffa502,#2ed573,#1e90ff);
-            opacity: 0.45; filter: blur(10px); z-index: 0;
-            animation: rotateSlow 8s linear infinite;
-        }
-        #wheel {
-            position: relative; z-index: 1;
-            width: 100%; height: 100%;
-            border-radius: 50%;
-            border: 6px solid var(--gold);
-            box-shadow: 0 0 24px rgba(245,200,66,0.5), inset 0 0 30px rgba(0,0,0,0.3);
-            transition: transform 5.5s cubic-bezier(0.17,0.67,0.12,1);
-            background: conic-gradient(
-                #e74c3c 0deg 32.727deg,#e67e22 32.727deg 65.454deg,
-                #f1c40f 65.454deg 98.181deg,#2ecc71 98.181deg 130.908deg,
-                #1abc9c 130.908deg 163.635deg,#3498db 163.635deg 196.362deg,
-                #9b59b6 196.362deg 229.089deg,#e91e63 229.089deg 261.816deg,
-                #ff5722 261.816deg 294.543deg,#00bcd4 294.543deg 327.27deg,
-                #8bc34a 327.27deg 360deg
-            );
-        }
-        #wheelCanvas {
-            position: absolute; inset: 0; width: 100%; height: 100%;
-            border-radius: 50%; z-index: 2; pointer-events: none;
-        }
-        .wheel-hub {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            width: 52px; height: 52px; border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, #fff 0%, var(--gold) 50%, #a07000 100%);
-            border: 3px solid rgba(255,255,255,0.2);
-            box-shadow: 0 0 16px rgba(245,200,66,0.7); z-index: 10;
-        }
-        .pointer-wrap {
-            position: absolute; top: -20px; left: 50%;
-            transform: translateX(-50%); z-index: 20;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .pointer-body {
-            width: 0; height: 0;
-            border-left: 17px solid transparent;
-            border-right: 17px solid transparent;
-            border-top: 40px solid var(--gold);
-            filter: drop-shadow(0 4px 8px rgba(245,200,66,0.6));
-        }
-        .pointer-cap {
-            width: 22px; height: 22px; border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, #fff 0%, var(--gold) 60%);
-            margin-top: -9px; box-shadow: 0 0 10px rgba(245,200,66,0.8);
-        }
-        .spin-btn-wrap { margin: 14px 0 6px; animation: fadeUp 1s 0.3s ease both; }
-        #spinBtn {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.8em; letter-spacing: 3px;
-            padding: 15px 64px; border-radius: 60px; border: none; cursor: pointer;
-            background: linear-gradient(135deg, var(--gold) 0%, #ff9500 100%);
-            color: #1a0a00;
-            box-shadow: 0 6px 30px rgba(245,200,66,0.4), 0 2px 0 rgba(0,0,0,0.3);
-            transition: transform 0.15s, box-shadow 0.15s;
-            position: relative; overflow: hidden;
-        }
-        #spinBtn::before {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 60%; height: 100%;
-            background: linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
-            transition: left 0.4s;
-        }
-        #spinBtn:hover:not(:disabled)::before { left: 160%; }
-        #spinBtn:hover:not(:disabled) { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 40px rgba(245,200,66,0.5),0 2px 0 rgba(0,0,0,0.3); }
-        #spinBtn:active:not(:disabled) { transform: translateY(1px) scale(0.98); }
-        #spinBtn:disabled { background: linear-gradient(135deg,#444,#333); color: #777; cursor: not-allowed; box-shadow: none; }
+    /* ── AMBIENT BG ── */
+    .ambient{
+      position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(ellipse 60% 40% at 15% 15%,rgba(74,158,255,.07) 0%,transparent 60%),
+        radial-gradient(ellipse 50% 50% at 85% 80%,rgba(245,200,66,.05) 0%,transparent 55%),
+        radial-gradient(ellipse 40% 60% at 50% 50%,rgba(168,85,247,.04) 0%,transparent 55%);
+    }
 
-        #result {
-            min-height: 80px; display: flex; align-items: center;
-            justify-content: center; flex-direction: column; gap: 4px;
-            font-size: 1.05em; font-weight: 700; color: var(--muted);
-            text-align: center; padding: 0 10px; transition: all 0.4s ease;
-        }
-        #result.spinning { color: var(--gold); animation: pulse 0.6s infinite alternate; }
-        .result-prize {
-            font-family: 'Bebas Neue', sans-serif; font-size: 2.2em; letter-spacing: 2px;
-            background: linear-gradient(135deg, var(--green), #00b0ff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; line-height: 1.1;
-        }
-        #claimSection {
-            display: none; width: 100%; margin-top: 12px;
-            background: linear-gradient(135deg, var(--surface), var(--surface2));
-            border: 1px solid rgba(41,121,255,0.35); border-radius: 20px;
-            padding: 24px 20px; text-align: center;
-            animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-        }
-        .claim-title { font-family: 'Bebas Neue', sans-serif; font-size: 2em; letter-spacing: 2px; color: var(--gold); margin-bottom: 8px; }
-        .claim-desc { color: var(--muted); font-size: 0.9em; line-height: 1.5; margin-bottom: 18px; }
-        #claimBtn {
-            font-family: 'Bebas Neue', sans-serif; font-size: 1.5em; letter-spacing: 2px;
-            padding: 14px 50px;
-            background: linear-gradient(135deg, #2979ff, #1565c0); color: #fff;
-            border: none; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 6px 24px rgba(41,121,255,0.4); transition: transform 0.15s,box-shadow 0.15s;
-        }
-        #claimBtn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(41,121,255,0.5); }
-        .no-spins-msg { display: none; text-align: center; padding: 16px; color: var(--muted); font-size: 0.95em; line-height: 1.6; }
-        .no-spins-msg span { color: var(--gold); font-weight: 800; }
-        .disclaimer { margin-top: 36px; font-size: 0.75em; color: #443f6b; text-align: center; line-height: 1.6; padding: 0 8px; max-width: 480px; }
+    /* ── NAVBAR ── */
+    nav{
+      position:sticky;top:0;z-index:100;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 20px;
+      background:rgba(8,8,16,.85);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-logo{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:1.5em;letter-spacing:2px;
+      background:linear-gradient(135deg,#fff 30%,var(--gold) 70%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    .nav-links{display:flex;gap:6px}
+    .nav-btn{
+      background:none;border:1px solid var(--border);
+      color:var(--muted);font-family:'Nunito',sans-serif;
+      font-size:.82em;font-weight:700;letter-spacing:.5px;
+      padding:6px 14px;border-radius:50px;cursor:pointer;
+      transition:all .2s;
+    }
+    .nav-btn:hover,.nav-btn.active{
+      background:var(--surface2);color:var(--text);
+      border-color:rgba(255,255,255,.15);
+    }
 
-        @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)}  to{opacity:1;transform:translateY(0)} }
-        @keyframes popIn    { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
-        @keyframes pulse    { from{opacity:0.7} to{opacity:1} }
-        @keyframes rotateSlow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @keyframes winPulse { 0%,100%{box-shadow:0 0 24px rgba(245,200,66,0.5);border-color:var(--gold)} 50%{box-shadow:0 0 50px rgba(0,230,118,0.7);border-color:var(--green)} }
-        .wheel-win #wheel { animation: winPulse 0.8s ease-in-out 4; }
-    </style>
+    /* ── PAGE SYSTEM ── */
+    .page{display:none;position:relative;z-index:1}
+    .page.active{display:block}
+
+    /* ── MAIN GAME PAGE ── */
+    #page-game{
+      display:flex;flex-direction:column;align-items:center;
+      padding:20px 16px 48px;max-width:600px;margin:0 auto;
+    }
+    #page-game.active{display:flex}
+
+    /* header */
+    .game-header{text-align:center;margin-bottom:16px;animation:fadeDown .7s ease both}
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      color:#1a0a00;font-size:.7em;font-weight:900;
+      letter-spacing:2px;text-transform:uppercase;
+      padding:4px 14px;border-radius:20px;margin-bottom:10px;
+    }
+    h1.game-title{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2.6em,9vw,4em);letter-spacing:3px;line-height:1;
+      background:linear-gradient(140deg,#fff 20%,var(--gold) 60%,#ff9500 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      margin-bottom:6px;
+    }
+    .game-sub{font-size:.9em;color:var(--muted);font-weight:600}
+
+    /* spins bar */
+    .spins-bar{
+      display:flex;align-items:center;gap:12px;
+      margin-bottom:18px;
+      background:var(--surface);
+      border:1px solid rgba(245,200,66,.12);
+      border-radius:50px;padding:9px 22px;
+      animation:fadeDown .8s .1s ease both;
+    }
+    .spins-label{font-size:.8em;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+    .spins-dots{display:flex;gap:8px}
+    .sdot{
+      width:14px;height:14px;border-radius:50%;
+      background:var(--gold);
+      box-shadow:0 0 10px rgba(245,200,66,.55);
+      transition:all .4s ease;
+    }
+    .sdot.used{background:#2a2a3a;box-shadow:none}
+
+    /* wheel section */
+    .wheel-section{
+      position:relative;
+      width:min(86vw,380px);height:min(86vw,380px);
+      margin-bottom:10px;
+      animation:fadeUp .9s .2s ease both;
+    }
+    .wheel-glow{
+      position:absolute;inset:-14px;border-radius:50%;
+      background:conic-gradient(#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6,#e91e63,#ff5722,#00bcd4,#8bc34a,#e74c3c);
+      opacity:.35;filter:blur(14px);z-index:0;
+      animation:rotateSlow 10s linear infinite;
+    }
+    #wheel{
+      position:relative;z-index:1;
+      width:100%;height:100%;
+      border-radius:50%;
+      border:5px solid var(--gold);
+      box-shadow:var(--shadow-gold),inset 0 0 40px rgba(0,0,0,.4);
+      transition:transform 6s cubic-bezier(0.15,0.65,0.1,1);
+      will-change:transform;
+    }
+    /* wheel drawn by canvas */
+    #wheelCanvas{
+      position:absolute;inset:0;width:100%;height:100%;
+      border-radius:50%;z-index:2;pointer-events:none;
+    }
+    .wheel-hub{
+      position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      width:50px;height:50px;border-radius:50%;
+      background:radial-gradient(circle at 35% 35%,#fff 0%,var(--gold) 55%,#a07000 100%);
+      border:3px solid rgba(255,255,255,.2);
+      box-shadow:0 0 16px rgba(245,200,66,.7);
+      z-index:10;
+    }
+    /* pointer */
+    .pointer{
+      position:absolute;top:-18px;left:50%;
+      transform:translateX(-50%);z-index:20;
+      display:flex;flex-direction:column;align-items:center;
+    }
+    .ptr-cap{
+      width:22px;height:22px;border-radius:50%;
+      background:radial-gradient(circle at 35% 35%,#fff 0%,var(--gold) 60%);
+      box-shadow:0 0 10px rgba(245,200,66,.9);
+      z-index:2;
+    }
+    .ptr-body{
+      width:0;height:0;
+      border-left:16px solid transparent;
+      border-right:16px solid transparent;
+      border-top:38px solid var(--gold);
+      filter:drop-shadow(0 4px 8px rgba(245,200,66,.55));
+      margin-top:-4px;
+    }
+
+    /* spin button */
+    .spin-wrap{margin:16px 0 4px;animation:fadeUp 1s .3s ease both}
+    #spinBtn{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:1.9em;letter-spacing:3px;
+      padding:15px 70px;border-radius:60px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,var(--gold) 0%,#ff9500 100%);
+      color:#1a0a00;
+      box-shadow:0 6px 32px rgba(245,200,66,.4),0 2px 0 rgba(0,0,0,.3);
+      transition:transform .15s,box-shadow .15s;
+      position:relative;overflow:hidden;
+    }
+    #spinBtn::after{
+      content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+      transition:left .45s;
+    }
+    #spinBtn:hover:not(:disabled)::after{left:160%}
+    #spinBtn:hover:not(:disabled){transform:translateY(-3px) scale(1.03);box-shadow:0 12px 40px rgba(245,200,66,.5),0 2px 0 rgba(0,0,0,.3)}
+    #spinBtn:active:not(:disabled){transform:translateY(1px) scale(.98)}
+    #spinBtn:disabled{background:linear-gradient(135deg,#2e2e44,#1e1e30);color:#55536e;cursor:not-allowed;box-shadow:none}
+
+    /* result */
+    #result{
+      min-height:88px;display:flex;align-items:center;justify-content:center;
+      flex-direction:column;gap:4px;
+      text-align:center;padding:0 12px;
+      transition:all .4s ease;
+    }
+    #result .r-hint{font-size:.95em;color:var(--muted);font-weight:700}
+    #result.spinning .r-hint{color:var(--gold);animation:pulse .55s infinite alternate}
+    #result .r-prize{
+      font-family:'Bebas Neue',sans-serif;font-size:2.4em;letter-spacing:2px;line-height:1.1;
+      background:linear-gradient(135deg,var(--green),#00c8ff);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+
+    /* claim card */
+    #claimSection{
+      display:none;width:100%;margin-top:14px;
+      background:linear-gradient(135deg,var(--surface),var(--surface2));
+      border:1px solid rgba(74,158,255,.3);border-radius:var(--radius);
+      padding:26px 22px;text-align:center;
+      animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .claim-icon{font-size:2.5em;margin-bottom:6px}
+    .claim-title{font-family:'Bebas Neue',sans-serif;font-size:2em;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
+    .claim-prize-badge{
+      display:inline-block;
+      background:linear-gradient(135deg,rgba(0,230,118,.15),rgba(0,200,255,.15));
+      border:1px solid rgba(0,230,118,.3);
+      color:var(--green);font-weight:800;font-size:1.1em;
+      padding:8px 22px;border-radius:50px;margin-bottom:14px;
+    }
+    .claim-desc{color:var(--muted);font-size:.88em;line-height:1.6;margin-bottom:18px}
+    #claimBtn{
+      font-family:'Bebas Neue',sans-serif;font-size:1.55em;letter-spacing:2px;
+      padding:14px 52px;
+      background:linear-gradient(135deg,var(--blue),#1565c0);
+      color:#fff;border:none;border-radius:50px;cursor:pointer;
+      box-shadow:0 6px 24px rgba(74,158,255,.4);
+      transition:transform .15s,box-shadow .15s;
+    }
+    #claimBtn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(74,158,255,.5)}
+
+    /* no spins */
+    .no-spins{
+      display:none;margin-top:10px;
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:18px 20px;
+      text-align:center;font-size:.9em;color:var(--muted);line-height:1.6;
+    }
+    .no-spins strong{color:var(--gold)}
+
+    /* prize legend */
+    .prize-legend{
+      width:100%;margin-top:28px;
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:18px;
+      animation:fadeUp 1.1s .4s ease both;
+    }
+    .legend-title{
+      font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:2px;
+      color:var(--muted);margin-bottom:14px;text-align:center;
+    }
+    .legend-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+      gap:8px;
+    }
+    .legend-item{
+      display:flex;align-items:center;gap:8px;
+      background:var(--surface2);border-radius:10px;
+      padding:8px 10px;font-size:.8em;font-weight:700;
+    }
+    .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+    /* HOW TO PLAY */
+    .how-section{
+      width:100%;margin-top:20px;
+      border-radius:var(--radius);overflow:hidden;
+      border:1px solid var(--border);
+      animation:fadeUp 1.2s .5s ease both;
+    }
+    .how-header{
+      background:var(--surface);padding:14px 18px;
+      display:flex;justify-content:space-between;align-items:center;
+      cursor:pointer;user-select:none;
+    }
+    .how-header span{font-family:'Bebas Neue',sans-serif;font-size:1.15em;letter-spacing:2px;color:var(--muted)}
+    .how-header .chevron{color:var(--muted);transition:transform .3s;font-size:1.1em}
+    .how-body{
+      display:none;background:var(--surface2);padding:16px 20px;
+      border-top:1px solid var(--border);
+    }
+    .how-body.open{display:block}
+    .how-step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+    .how-step:last-child{margin-bottom:0}
+    .step-num{
+      min-width:28px;height:28px;border-radius:50%;
+      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      color:#1a0a00;font-weight:900;font-size:.85em;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .step-text{font-size:.88em;color:var(--muted);line-height:1.5;padding-top:4px}
+    .step-text strong{color:var(--text)}
+
+    /* disclaimer */
+    .disclaimer{margin-top:30px;font-size:.72em;color:#363550;text-align:center;line-height:1.6;padding:0 8px;max-width:480px}
+
+    /* ─────────────────────────────────────────
+       SUPPORT PAGE
+    ───────────────────────────────────────── */
+    #page-support,#page-about{
+      max-width:600px;margin:0 auto;
+      padding:30px 20px 60px;
+    }
+    .inner-page-title{
+      font-family:'Bebas Neue',sans-serif;
+      font-size:clamp(2em,7vw,3em);letter-spacing:3px;
+      background:linear-gradient(135deg,#fff 30%,var(--gold) 70%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      margin-bottom:6px;
+    }
+    .inner-page-sub{font-size:.9em;color:var(--muted);margin-bottom:28px;font-weight:600}
+    .card{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:22px;margin-bottom:16px;
+    }
+    .card-icon{font-size:1.8em;margin-bottom:8px}
+    .card h3{font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
+    .card p,.card li{font-size:.9em;color:var(--muted);line-height:1.6}
+    .card ul{padding-left:18px}
+    .card li{margin-bottom:6px}
+    .faq-item{margin-bottom:0}
+    .faq-q{
+      font-weight:800;font-size:.9em;color:var(--text);
+      padding:14px 0;border-bottom:1px solid var(--border);
+      cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+      user-select:none;
+    }
+    .faq-q:first-child{padding-top:0}
+    .faq-q .fchev{color:var(--muted);transition:transform .25s;font-size:.9em}
+    .faq-a{display:none;font-size:.88em;color:var(--muted);padding:12px 0 14px;line-height:1.6;border-bottom:1px solid var(--border)}
+    .faq-a.open{display:block}
+    .contact-btn{
+      display:inline-flex;align-items:center;gap:8px;
+      font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:2px;
+      padding:12px 32px;border-radius:50px;border:none;cursor:pointer;
+      text-decoration:none;margin-top:12px;
+      background:linear-gradient(135deg,var(--blue),#1565c0);
+      color:#fff;box-shadow:0 4px 20px rgba(74,158,255,.35);
+      transition:transform .15s,box-shadow .15s;
+    }
+    .contact-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(74,158,255,.5)}
+
+    /* about page */
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    .stat-card{
+      background:var(--surface2);border:1px solid var(--border);border-radius:14px;
+      padding:16px;text-align:center;
+    }
+    .stat-num{font-family:'Bebas Neue',sans-serif;font-size:2em;letter-spacing:1px;color:var(--gold)}
+    .stat-lbl{font-size:.75em;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+    .team-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+    .avatar{
+      width:48px;height:48px;border-radius:50%;
+      background:linear-gradient(135deg,var(--purple),var(--blue));
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.4em;flex-shrink:0;
+    }
+    .team-info h4{font-size:.95em;font-weight:800;margin-bottom:2px}
+    .team-info span{font-size:.8em;color:var(--muted)}
+
+    /* ── SHARED ANIMATIONS ── */
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes popIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+    @keyframes pulse{from{opacity:.65}to{opacity:1}}
+    @keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes winRing{
+      0%,100%{box-shadow:var(--shadow-gold),inset 0 0 40px rgba(0,0,0,.4);border-color:var(--gold)}
+      50%{box-shadow:0 0 60px rgba(0,230,118,.7),inset 0 0 40px rgba(0,0,0,.4);border-color:var(--green)}
+    }
+    .wheel-win #wheel{animation:winRing .85s ease-in-out 4}
+
+    /* mobile tweaks */
+    @media(max-width:480px){
+      #spinBtn{font-size:1.6em;padding:14px 50px}
+      .legend-grid{grid-template-columns:repeat(2,1fr)}
+      .stat-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+      .stat-num{font-size:1.5em}
+    }
+  </style>
 </head>
 <body>
-<div class="page-wrap">
-    <div class="header">
-        <div class="header-badge">🎁 Limited Time Giveaway</div>
-        <h1>Spin &amp; Win!</h1>
-        <p class="subtitle">Free iPhones, iPads &amp; Laptops — Every Spin Wins!</p>
+<div class="ambient"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🎡 SpinWin</div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="showPage('game',this)">🎰 Play</button>
+    <button class="nav-btn" onclick="showPage('support',this)">💬 Support</button>
+    <button class="nav-btn" onclick="showPage('about',this)">ℹ️ About</button>
+  </div>
+</nav>
+
+<!-- ══════════════ GAME PAGE ══════════════ -->
+<div class="page active" id="page-game">
+  <div class="game-header">
+    <div class="badge">🎁 Limited Time Giveaway</div>
+    <h1 class="game-title">Spin &amp; Win!</h1>
+    <p class="game-sub">Free iPhones, iPads &amp; Laptops — Every Spin Wins!</p>
+  </div>
+
+  <div class="spins-bar">
+    <span class="spins-label">Free Spins</span>
+    <div class="spins-dots" id="spinDots"></div>
+  </div>
+
+  <div class="wheel-section" id="wheelWrap">
+    <div class="wheel-glow"></div>
+    <div id="wheel">
+      <canvas id="wheelCanvas"></canvas>
+      <div class="wheel-hub"></div>
     </div>
-    <div class="spins-bar">
-        <span class="spins-label">Spins</span>
-        <div class="spins-dots" id="spinDots"></div>
+    <div class="pointer">
+      <div class="ptr-cap"></div>
+      <div class="ptr-body"></div>
     </div>
-    <div class="wheel-wrap" id="wheelWrap">
-        <div class="wheel-ring"></div>
-        <div id="wheel">
-            <canvas id="wheelCanvas"></canvas>
-            <div class="wheel-hub"></div>
-        </div>
-        <div class="pointer-wrap">
-            <div class="pointer-body"></div>
-            <div class="pointer-cap"></div>
-        </div>
+  </div>
+
+  <div class="spin-wrap">
+    <button id="spinBtn">🎰 SPIN NOW!</button>
+  </div>
+
+  <div id="result">
+    <span class="r-hint">Tap the button to spin the wheel!</span>
+  </div>
+
+  <div id="claimSection">
+    <div class="claim-icon">🏆</div>
+    <div class="claim-title">You Won!</div>
+    <div class="claim-prize-badge" id="claimPrizeBadge"></div>
+    <p class="claim-desc">Tap the button below to open Messenger with your winning details. Add your name, phone number &amp; address — then hit send!</p>
+    <a id="claimLink" href="#" target="_blank" rel="noopener noreferrer">
+      <button id="claimBtn">💬 Claim via Messenger</button>
+    </a>
+    <p style="margin-top:12px;font-size:.8em;color:#4a4870">We verify &amp; arrange delivery as fast as possible ⚡</p>
+  </div>
+
+  <div class="no-spins" id="noSpinsMsg">
+    <strong>🎡 You've used all 3 free spins today!</strong><br>
+    Come back tomorrow for more chances to win amazing prizes.
+  </div>
+
+  <!-- Prize Legend -->
+  <div class="prize-legend">
+    <div class="legend-title">🎁 Possible Prizes</div>
+    <div class="legend-grid" id="legendGrid"></div>
+  </div>
+
+  <!-- How to Play -->
+  <div class="how-section">
+    <div class="how-header" onclick="toggleHow()">
+      <span>📖 How to Play</span>
+      <span class="chevron" id="howChev">▼</span>
     </div>
-    <div class="spin-btn-wrap">
-        <button id="spinBtn">🎰 SPIN NOW!</button>
+    <div class="how-body" id="howBody">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Click "SPIN NOW!"</strong> to spin the wheel. You get <strong>3 free spins</strong> every day.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-text">Watch the wheel land on your prize — <strong>every spin wins something!</strong></div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Click "Claim via Messenger"</strong> and send your name, phone &amp; address to our team.</div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">4</div>
+        <div class="step-text">Our team <strong>verifies your win</strong> and arranges delivery straight to your door!</div>
+      </div>
     </div>
-    <div id="result"><span id="resultText">Tap the button to spin the wheel!</span></div>
-    <div id="claimSection">
-        <div class="claim-title">🎉 Congratulations!</div>
-        <p class="claim-desc">You've won a prize! Click below to open Messenger with your winning details pre-filled. Add your name, phone &amp; address, then send!</p>
-        <a id="claimLink" href="#" target="_blank" rel="noopener noreferrer">
-            <button id="claimBtn">💬 Claim via Messenger</button>
-        </a>
-        <p style="margin-top:12px;font-size:0.82em;color:#5a5880;">We'll verify and arrange delivery as fast as possible!</p>
-    </div>
-    <div class="no-spins-msg" id="noSpinsMsg">
-        <p>You've used all <span>3 free spins</span>.<br>Come back tomorrow for more chances to win! 🙏</p>
-    </div>
-    <audio id="spinSound" src="/spin.mp3" preload="auto"></audio>
-    <audio id="winSound"  src="/win.mp3"  preload="auto"></audio>
-    <p class="disclaimer">
-        This promotion is not sponsored, endorsed, or administered by Meta/Facebook.
-        Open to US residents 18+. Only pay if prize is guaranteed by the page admin.
-        Void where prohibited. Winners contacted via Messenger for verification.
-    </p>
+  </div>
+
+  <p class="disclaimer">
+    This promotion is not sponsored, endorsed, or administered by Meta/Facebook.
+    Open to US residents 18+. Only pay if prize is guaranteed by the page admin.
+    Void where prohibited. Winners contacted via Messenger for verification.
+  </p>
 </div>
+
+<!-- ══════════════ SUPPORT PAGE ══════════════ -->
+<div class="page" id="page-support">
+  <h2 class="inner-page-title">Support</h2>
+  <p class="inner-page-sub">We're here to help — get answers fast.</p>
+
+  <div class="card">
+    <div class="card-icon">❓</div>
+    <h3>Frequently Asked Questions</h3>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">How many spins do I get? <span class="fchev">▼</span></div>
+      <div class="faq-a">You get <strong>3 free spins</strong> every day. Your spin count resets at midnight local time.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">Is this really free? <span class="fchev">▼</span></div>
+      <div class="faq-a">Yes! Spinning the wheel is completely free. You only need to pay if the prize delivery requires it AND it's confirmed by the page admin — we'll never charge you upfront.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">How do I claim my prize? <span class="fchev">▼</span></div>
+      <div class="faq-a">After you win, click the <strong>"Claim via Messenger"</strong> button. A pre-filled message opens in Facebook Messenger. Add your full name, phone number, and delivery address — then send it to our team.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">How long does delivery take? <span class="fchev">▼</span></div>
+      <div class="faq-a">After verification, delivery typically takes 5–10 business days depending on your location. Our team will keep you updated via Messenger.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">My spin count didn't reset — help! <span class="fchev">▼</span></div>
+      <div class="faq-a">Spin counts are stored in your browser. Try clearing your browser's cookies/local storage, or contact us via Messenger and we'll reset it for you manually.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">Can I spin on multiple devices? <span class="fchev">▼</span></div>
+      <div class="faq-a">Spin limits are stored per device/browser. Using multiple devices doesn't stack your wins — only one prize per person per day is honoured during verification.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-icon">💬</div>
+    <h3>Contact Us</h3>
+    <p style="margin-bottom:6px">Have a question not answered above? Reach out directly — we respond within 24 hours.</p>
+    <a class="contact-btn" href="https://m.me/FreeIphonesandTablets" target="_blank" rel="noopener noreferrer">
+      💬 Message Us on Messenger
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-icon">🔔</div>
+    <h3>Tips for Winners</h3>
+    <ul>
+      <li>Screenshot your winning result before claiming.</li>
+      <li>Make sure your Messenger account name matches your real name for faster verification.</li>
+      <li>Double-check your address before sending — mistakes delay delivery.</li>
+      <li>If you don't hear back within 48 hours, follow up on Messenger with your order details.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════ ABOUT PAGE ══════════════ -->
+<div class="page" id="page-about">
+  <h2 class="inner-page-title">About</h2>
+  <p class="inner-page-sub">Learn more about the SpinWin Giveaway.</p>
+
+  <div class="card">
+    <div class="card-icon">🎯</div>
+    <h3>Our Mission</h3>
+    <p>SpinWin was created to bring joy and excitement to people who deserve a little extra luck. We believe everyone should have a chance to win amazing tech prizes without spending a dime. Our giveaway wheel is 100% free to play and every spin is guaranteed to win a real prize.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-icon">📊</div>
+    <h3>By the Numbers</h3>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">11</div><div class="stat-lbl">Prizes</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-lbl">Daily Spins</div></div>
+      <div class="stat-card"><div class="stat-num">100%</div><div class="stat-lbl">Win Rate</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-icon">🎁</div>
+    <h3>Prize Catalogue</h3>
+    <ul>
+      <li>iPhone 15 Pro Max</li>
+      <li>iPhone 16</li>
+      <li>iPhone 17 Pro Max</li>
+      <li>iPad (2 variants)</li>
+      <li>Samsung Galaxy Tablet</li>
+      <li>MacBook Pro</li>
+      <li>HP Laptop</li>
+      <li>Dell Laptop</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-icon">⚖️</div>
+    <h3>Legal &amp; Fairness</h3>
+    <p>This promotion is not sponsored, endorsed, or administered by Meta/Facebook. Open to US residents 18+. Prize distribution is fully random using server-side selection. Void where prohibited by law. By participating you agree to our terms and allow us to contact you via Messenger for delivery coordination.</p>
+  </div>
+</div>
+
+<!-- AUDIO -->
+<audio id="spinSound" src="/spin.mp3" preload="auto"></audio>
+<audio id="winSound"  src="/win.mp3"  preload="auto"></audio>
+
 <script>
-    const prizes = ["iPhone 15 Pro Max","iPhone 15 Pro Max","iPhone 17 Pro Max","iPhone 17 Pro Max","iPhone 16","Samsung Tablet","iPad","iPad","MacBook Pro","HP Laptop","Dell Laptop"];
-    const MAX_SPINS = 3;
-    const STORAGE_KEY = 'wheel_spins_v3';
+/* ═══════════════════════════════
+   PAGE NAVIGATION
+═══════════════════════════════ */
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-    let spinsUsed = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
-    let totalRotation = 0;
-    let spinning = false;
+/* ═══════════════════════════════
+   ACCORDION HELPERS
+═══════════════════════════════ */
+function toggleHow() {
+  const body = document.getElementById('howBody');
+  const chev = document.getElementById('howChev');
+  body.classList.toggle('open');
+  chev.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+function toggleFaq(el) {
+  const ans  = el.nextElementSibling;
+  const chev = el.querySelector('.fchev');
+  const open = ans.classList.contains('open');
+  // close all
+  document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.fchev').forEach(c => c.textContent = '▼');
+  if (!open) { ans.classList.add('open'); chev.textContent = '▲'; }
+}
 
-    const wheel = document.getElementById('wheel');
-    const canvas = document.getElementById('wheelCanvas');
-    const spinBtn = document.getElementById('spinBtn');
-    const result = document.getElementById('result');
-    const resultText = document.getElementById('resultText');
-    const claimSection = document.getElementById('claimSection');
-    const claimLink = document.getElementById('claimLink');
-    const spinDots = document.getElementById('spinDots');
-    const noSpinsMsg = document.getElementById('noSpinsMsg');
-    const spinAudio = document.getElementById('spinSound');
-    const winAudio = document.getElementById('winSound');
+/* ═══════════════════════════════
+   WHEEL CONFIG
+═══════════════════════════════ */
+const PRIZES = [
+  { name:"iPhone 15 Pro Max", emoji:"📱", color:"#e74c3c" },
+  { name:"iPhone 15 Pro Max", emoji:"📱", color:"#e67e22" },
+  { name:"iPhone 17 Pro Max", emoji:"📱", color:"#f1c40f" },
+  { name:"iPhone 17 Pro Max", emoji:"📱", color:"#2ecc71" },
+  { name:"iPhone 16",         emoji:"📱", color:"#1abc9c" },
+  { name:"Samsung Tablet",    emoji:"📟", color:"#3498db" },
+  { name:"iPad",              emoji:"🖥️", color:"#9b59b6" },
+  { name:"iPad",              emoji:"🖥️", color:"#e91e63" },
+  { name:"MacBook Pro",       emoji:"💻", color:"#ff5722" },
+  { name:"HP Laptop",         emoji:"💻", color:"#00bcd4" },
+  { name:"Dell Laptop",       emoji:"💻", color:"#8bc34a" },
+];
+const MAX_SPINS   = 3;
+const STORAGE_KEY = 'spinwin_v4';
 
-    function drawLabels(rotDeg) {
-        const size = canvas.offsetWidth || 360;
-        canvas.width = canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        const n = prizes.length;
-        const slice = (2 * Math.PI) / n;
-        const r = size / 2 - 12;
-        ctx.clearRect(0, 0, size, size);
-        for (let i = 0; i < n; i++) {
-            const angle = (rotDeg * Math.PI / 180) + i * slice - Math.PI / 2;
-            const mid = angle + slice / 2;
-            const tx = size/2 + r*0.62 * Math.cos(mid);
-            const ty = size/2 + r*0.62 * Math.sin(mid);
-            ctx.save();
-            ctx.translate(tx, ty);
-            ctx.rotate(mid + Math.PI / 2);
-            const label = prizes[i].replace('Pro Max','Pro+').replace('Samsung Tablet','Galaxy Tab').replace('MacBook Pro','MacBook');
-            const fs = Math.max(9, Math.min(13, size * 0.032));
-            ctx.font = `bold ${fs}px Nunito, sans-serif`;
-            ctx.fillStyle = 'rgba(255,255,255,0.93)';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(0,0,0,0.75)'; ctx.shadowBlur = 5;
-            ctx.fillText(label, 0, 0);
-            ctx.restore();
-        }
-    }
-    drawLabels(0);
+let spinsUsed = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
+let totalRot  = 0;
+let isSpinning = false;
 
-    function renderDots() {
-        spinDots.innerHTML = '';
-        for (let i = 0; i < MAX_SPINS; i++) {
-            const d = document.createElement('div');
-            d.className = 'spin-dot' + (i < spinsUsed ? ' used' : '');
-            spinDots.appendChild(d);
-        }
-    }
-    renderDots();
+/* ═══════════════════════════════
+   DRAW WHEEL CANVAS  (segments + emojis only, no text)
+═══════════════════════════════ */
+function drawWheel(rotDeg) {
+  const canvas  = document.getElementById('wheelCanvas');
+  const size    = canvas.offsetWidth || 360;
+  canvas.width  = canvas.height = size;
+  const ctx     = canvas.getContext('2d');
+  const cx = cy = size / 2;
+  const n       = PRIZES.length;
+  const slice   = (2 * Math.PI) / n;
+  const r       = size / 2 - 3;
+  const rotRad  = rotDeg * Math.PI / 180;
 
-    function updateUI() {
-        const rem = MAX_SPINS - spinsUsed;
-        if (rem <= 0) {
-            spinBtn.textContent = '😔 No Spins Left';
-            spinBtn.disabled = true;
-            noSpinsMsg.style.display = 'block';
-        } else {
-            spinBtn.textContent = '🎰 SPIN NOW!';
-            spinBtn.disabled = false;
-            noSpinsMsg.style.display = 'none';
-        }
-        renderDots();
-    }
+  ctx.clearRect(0, 0, size, size);
+
+  for (let i = 0; i < n; i++) {
+    const start = rotRad + i * slice - Math.PI / 2;
+    const end   = start + slice;
+
+    // filled segment
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle   = PRIZES[i].color;
+    ctx.fill();
+
+    // subtle segment divider
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+
+    // emoji in the middle of segment
+    const mid  = start + slice / 2;
+    const emoR = r * 0.6;
+    ctx.save();
+    ctx.translate(cx + emoR * Math.cos(mid), cy + emoR * Math.sin(mid));
+    ctx.rotate(mid + Math.PI / 2);
+    ctx.font      = `${Math.max(14, size * 0.052)}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(PRIZES[i].emoji, 0, 0);
+    ctx.restore();
+  }
+}
+drawWheel(0);
+
+/* ═══════════════════════════════
+   PRIZE LEGEND
+═══════════════════════════════ */
+(function buildLegend() {
+  const grid = document.getElementById('legendGrid');
+  const seen = new Set();
+  PRIZES.forEach(p => {
+    if (seen.has(p.name)) return;
+    seen.add(p.name);
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="legend-dot" style="background:${p.color}"></span>${p.emoji} ${p.name}`;
+    grid.appendChild(item);
+  });
+})();
+
+/* ═══════════════════════════════
+   SPIN DOTS
+═══════════════════════════════ */
+function renderDots() {
+  const wrap = document.getElementById('spinDots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < MAX_SPINS; i++) {
+    const d = document.createElement('div');
+    d.className = 'sdot' + (i < spinsUsed ? ' used' : '');
+    wrap.appendChild(d);
+  }
+}
+renderDots();
+
+function updateUI() {
+  const rem = MAX_SPINS - spinsUsed;
+  const btn = document.getElementById('spinBtn');
+  const noS = document.getElementById('noSpinsMsg');
+  if (rem <= 0) {
+    btn.textContent  = '😔 No Spins Left';
+    btn.disabled     = true;
+    noS.style.display = 'block';
+  } else {
+    btn.textContent  = '🎰 SPIN NOW!';
+    btn.disabled     = false;
+    noS.style.display = 'none';
+  }
+  renderDots();
+}
+updateUI();
+
+/* ═══════════════════════════════
+   AUDIO
+═══════════════════════════════ */
+const spinAudio = document.getElementById('spinSound');
+const winAudio  = document.getElementById('winSound');
+spinAudio.volume = 0.7;
+winAudio.volume  = 0.9;
+
+// Unlock audio context on first interaction (critical for mobile)
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  [spinAudio, winAudio].forEach(a => {
+    a.muted = false;
+    const p = a.play();
+    if (p) p.then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+  });
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
+
+/* Web Audio tick */
+let AudioCtx = null;
+function getCtx() {
+  if (!AudioCtx) {
+    try { AudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+  }
+  if (AudioCtx && AudioCtx.state === 'suspended') AudioCtx.resume();
+  return AudioCtx;
+}
+function playTick() {
+  const ctx = getCtx();
+  if (!ctx) return;
+  try {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'triangle';
+    o.frequency.value = 700 + Math.random() * 120;
+    g.gain.setValueAtTime(0.1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.07);
+  } catch(e) {}
+}
+
+let tickHandle = null;
+function startTicks(duration) {
+  let elapsed = 0, iv = 70;
+  function next() {
+    if (elapsed >= duration) return;
+    playTick();
+    const p = elapsed / duration;
+    iv = 70 + p * p * 750;
+    elapsed += iv;
+    tickHandle = setTimeout(next, iv);
+  }
+  next();
+}
+function stopTicks() { clearTimeout(tickHandle); }
+
+/* ═══════════════════════════════
+   CONFETTI BURST
+═══════════════════════════════ */
+function fireworks() {
+  const colors = ['#f5c842','#00e676','#4a9eff','#ff4081','#fff','#a855f7'];
+  confetti({ particleCount:140, spread:90, startVelocity:48, origin:{y:.55}, colors });
+  setTimeout(() => confetti({ particleCount:80, spread:70, origin:{y:.35}, colors }), 600);
+  setTimeout(() => confetti({ particleCount:60, spread:120, origin:{y:.45}, colors }), 1100);
+}
+
+/* ═══════════════════════════════
+   SPIN LOGIC
+═══════════════════════════════ */
+document.getElementById('spinBtn').addEventListener('click', async () => {
+  if (isSpinning || spinsUsed >= MAX_SPINS) return;
+  unlockAudio(); // ensure unlocked on click
+
+  isSpinning = true;
+  const btn    = document.getElementById('spinBtn');
+  const result = document.getElementById('result');
+  btn.disabled = true;
+  document.getElementById('claimSection').style.display = 'none';
+  result.className = 'spinning';
+  result.innerHTML = '<span class="r-hint">🎰 Spinning…</span>';
+  document.getElementById('wheelWrap').className = 'wheel-section';
+
+  // play spin sound
+  spinAudio.currentTime = 0;
+  spinAudio.play().catch(() => {});
+
+  // tick sounds
+  startTicks(6100);
+
+  // fetch prize from server
+  let data;
+  try {
+    const res = await fetch('/spin', { method:'POST' });
+    data = await res.json();
+  } catch(e) {
+    result.className = '';
+    result.innerHTML = '<span class="r-hint">Network error — please try again.</span>';
+    isSpinning = false; updateUI(); stopTicks(); spinAudio.pause();
+    return;
+  }
+
+  if (!data.success) {
+    result.className = '';
+    result.innerHTML = '<span class="r-hint">Something went wrong — try again.</span>';
+    isSpinning = false; updateUI(); stopTicks(); spinAudio.pause();
+    return;
+  }
+
+  // Calculate stop angle
+  const prizeIdx  = PRIZES.findIndex(p => p.name === data.prize);
+  const deg       = 360 / PRIZES.length;
+  const extraSpins = (Math.floor(Math.random() * 4) + 6) * 360;
+  const stopAngle  = 360 - (prizeIdx * deg + deg / 2);
+  totalRot        += extraSpins + stopAngle;
+
+  const wheel = document.getElementById('wheel');
+  wheel.style.transition = 'transform 6s cubic-bezier(0.15,0.65,0.1,1)';
+  wheel.style.transform  = `rotate(${totalRot}deg)`;
+  drawWheel(totalRot % 360);
+
+  // After spin finishes
+  setTimeout(() => {
+    stopTicks();
+    spinAudio.pause();
+    spinAudio.currentTime = 0;
+
+    isSpinning = false;
+    spinsUsed++;
+    localStorage.setItem(STORAGE_KEY, spinsUsed);
     updateUI();
 
-    // Mobile audio unlock
-    ['touchstart','click'].forEach(evt => {
-        document.body.addEventListener(evt, function u() {
-            [spinAudio, winAudio].forEach(a => { a.play().then(() => a.pause()).catch(() => {}); });
-            document.body.removeEventListener(evt, u);
-        }, { once: true });
-    });
+    // Show result
+    const prize = PRIZES[prizeIdx];
+    result.className = '';
+    result.innerHTML = `
+      <span class="r-hint">🏆 Congratulations!</span>
+      <span class="r-prize">${prize.emoji} ${prize.name}</span>
+    `;
 
-    // Tick sound via Web Audio API
-    let AudioCtx;
-    function tick() {
-        try {
-            if (!AudioCtx) AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const o = AudioCtx.createOscillator(), g = AudioCtx.createGain();
-            o.connect(g); g.connect(AudioCtx.destination);
-            o.frequency.value = 780 + Math.random() * 60;
-            g.gain.setValueAtTime(0.12, AudioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, AudioCtx.currentTime + 0.07);
-            o.start(); o.stop(AudioCtx.currentTime + 0.07);
-        } catch(e) {}
+    // Win animation on wheel
+    document.getElementById('wheelWrap').className = 'wheel-section wheel-win';
+
+    // Play win sound — robust multi-method approach
+    try {
+      winAudio.currentTime = 0;
+      const playPromise = winAudio.play();
+      if (playPromise) {
+        playPromise.catch(() => {
+          // fallback: create new audio element
+          const fallback = new Audio('/win.mp3');
+          fallback.volume = 0.9;
+          fallback.play().catch(() => {});
+        });
+      }
+    } catch(e) {
+      try { new Audio('/win.mp3').play(); } catch(e2) {}
     }
 
-    let tickTO = null;
-    function startTicks(dur) {
-        let elapsed = 0, interval = 75;
-        function next() {
-            if (elapsed >= dur) return;
-            tick();
-            const prog = elapsed / dur;
-            interval = 75 + prog * prog * 700;
-            elapsed += interval;
-            tickTO = setTimeout(next, interval);
-        }
-        next();
-    }
-    function stopTicks() { clearTimeout(tickTO); }
+    // Confetti
+    fireworks();
 
-    spinBtn.addEventListener('click', async () => {
-        if (spinning || spinsUsed >= MAX_SPINS) return;
-        spinning = true;
-        spinBtn.disabled = true;
-        claimSection.style.display = 'none';
-        result.className = 'spinning';
-        result.innerHTML = '<span>🎰 Spinning…</span>';
-        document.getElementById('wheelWrap').className = 'wheel-wrap';
+    // Claim section
+    const claimSection   = document.getElementById('claimSection');
+    const claimPrizeBadge = document.getElementById('claimPrizeBadge');
+    const claimLink       = document.getElementById('claimLink');
+    claimPrizeBadge.textContent = `${prize.emoji} ${prize.name}`;
+    const msg = encodeURIComponent(`🏆 I won ${prize.name} on the SpinWin wheel! My delivery details: `);
+    claimLink.href = `https://m.me/FreeIphonesandTablets?text=${msg}`;
+    claimSection.style.display = 'block';
 
-        spinAudio.currentTime = 0;
-        spinAudio.play().catch(() => {});
-        startTicks(5600);
-
-        let data;
-        try {
-            const res = await fetch('/spin', { method: 'POST' });
-            data = await res.json();
-        } catch (e) {
-            result.className = '';
-            result.innerHTML = '<span>Network error — try again.</span>';
-            spinning = false; updateUI(); stopTicks(); spinAudio.pause(); return;
-        }
-
-        if (!data.success) {
-            result.className = '';
-            result.innerHTML = '<span>Something went wrong — try again.</span>';
-            spinning = false; updateUI(); stopTicks(); spinAudio.pause(); return;
-        }
-
-        const prizeIdx = prizes.indexOf(data.prize);
-        const degPer   = 360 / prizes.length;
-        const extra    = (Math.floor(Math.random() * 4) + 5) * 360;
-        const stop     = 360 - (prizeIdx * degPer + degPer / 2);
-        totalRotation += extra + stop;
-
-        wheel.style.transition = 'transform 5.5s cubic-bezier(0.17,0.67,0.12,1)';
-        wheel.style.transform  = `rotate(${totalRotation}deg)`;
-        drawLabels(totalRotation % 360);
-
-        setTimeout(() => {
-            stopTicks();
-            spinAudio.pause(); spinAudio.currentTime = 0;
-
-            spinning = false;
-            spinsUsed++;
-            localStorage.setItem(STORAGE_KEY, spinsUsed);
-            updateUI();
-
-            result.className = '';
-            result.innerHTML = `<span style="color:var(--muted)">🏆 You Won!</span><span class="result-prize">${data.prize}!</span>`;
-
-            document.getElementById('wheelWrap').className = 'wheel-wrap wheel-win';
-
-            winAudio.currentTime = 0;
-            winAudio.play().catch(() => {});
-
-            confetti({ particleCount: 160, spread: 100, startVelocity: 50, origin: { y: 0.5 }, colors:['#f5c842','#00e676','#2979ff','#ff4081','#ffffff'] });
-            setTimeout(() => confetti({ particleCount: 80, spread: 70, origin: { y: 0.3 } }), 700);
-
-            const msg = encodeURIComponent(`I won ${data.prize} on your wheel! My details: `);
-            claimLink.href = `https://m.me/FreeIphonesandTablets?text=${msg}`;
-            claimSection.style.display = 'block';
-
-            setTimeout(() => { document.getElementById('wheelWrap').className = 'wheel-wrap'; }, 3200);
-        }, 5700);
-    });
+    // Reset wheel ring after animation
+    setTimeout(() => { document.getElementById('wheelWrap').className = 'wheel-section'; }, 3500);
+  }, 6200);
+});
 </script>
 </body>
 </html>
