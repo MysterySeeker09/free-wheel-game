@@ -792,6 +792,58 @@ function startTicks(duration) {
 function stopTicks() { clearTimeout(tickHandle); }
 
 /* ═══════════════════════════════
+   WIN FANFARE — Web Audio synth
+   Guaranteed to play: uses the same
+   AudioContext already unlocked by
+   the spin button click
+═══════════════════════════════ */
+function playWinFanfare() {
+  const ctx = getCtx();
+  if (!ctx) return;
+
+  // Victory arpeggio: C5 E5 G5 C6 then sparkle
+  const notes = [
+    { freq: 523.25, start: 0.0,  dur: 0.18 },
+    { freq: 659.25, start: 0.15, dur: 0.18 },
+    { freq: 783.99, start: 0.30, dur: 0.18 },
+    { freq: 1046.5, start: 0.45, dur: 0.50 },
+    { freq:  783.99,start: 0.50, dur: 0.18 },
+    { freq: 1318.5, start: 0.65, dur: 0.65 },
+  ];
+
+  notes.forEach(({ freq, start, dur }) => {
+    const now  = ctx.currentTime;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, now + start);
+    gain.gain.linearRampToValueAtTime(0.22, now + start + 0.03);
+    gain.gain.setValueAtTime(0.22, now + start + dur - 0.05);
+    gain.gain.linearRampToValueAtTime(0, now + start + dur);
+    osc.start(now + start);
+    osc.stop(now + start + dur + 0.05);
+  });
+
+  // High shimmer sparkle
+  [2093, 2637, 3136].forEach((freq, i) => {
+    const now  = ctx.currentTime;
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const t = 0.55 + i * 0.1;
+    gain.gain.setValueAtTime(0, now + t);
+    gain.gain.linearRampToValueAtTime(0.07, now + t + 0.02);
+    gain.gain.linearRampToValueAtTime(0, now + t + 0.15);
+    osc.start(now + t);
+    osc.stop(now + t + 0.2);
+  });
+}
+
+/* ═══════════════════════════════
    CONFETTI BURST
 ═══════════════════════════════ */
 function fireworks() {
@@ -877,21 +929,14 @@ document.getElementById('spinBtn').addEventListener('click', async () => {
     // Win animation on wheel
     document.getElementById('wheelWrap').className = 'wheel-section wheel-win';
 
-    // Play win sound — robust multi-method approach
+    // Play win sound — Web Audio API fanfare (works on all browsers/mobile, no autoplay block)
+    playWinFanfare();
+
+    // Also attempt the mp3 as a bonus layer
     try {
       winAudio.currentTime = 0;
-      const playPromise = winAudio.play();
-      if (playPromise) {
-        playPromise.catch(() => {
-          // fallback: create new audio element
-          const fallback = new Audio('/win.mp3');
-          fallback.volume = 0.9;
-          fallback.play().catch(() => {});
-        });
-      }
-    } catch(e) {
-      try { new Audio('/win.mp3').play(); } catch(e2) {}
-    }
+      winAudio.play().catch(() => {});
+    } catch(e) {}
 
     // Confetti
     fireworks();
