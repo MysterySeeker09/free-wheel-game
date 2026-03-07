@@ -1,413 +1,296 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#f5c842" />
-  <link rel="manifest" href="/manifest.json" />
-  <title>🎡 Spin &amp; Win — Free iPhones &amp; Tablets!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#f5c842"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <title>🎡 SpinWin — Free iPhones, Cash &amp; More!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   <style>
-    :root {
-      --gold:#f5c842; --gold-dark:#d4a017; --gold-light:#fff3c0;
-      --bg:#080810; --surface:#111120; --surface2:#18182a; --surface3:#20203a;
-      --green:#00e676; --blue:#4a9eff; --purple:#a855f7;
-      --text:#f0eeff; --muted:#6a688a; --border:rgba(255,255,255,0.07);
-      --shadow-gold:0 0 30px rgba(245,200,66,0.35);
+    :root{
+      --gold:#f5c842;--gold-dark:#c8930a;--gold-light:#fff3c0;
+      --bg:#07070f;--surface:#0f0f1e;--surface2:#161628;--surface3:#1e1e38;
+      --green:#00e676;--blue:#4a9eff;--purple:#a855f7;--red:#ff4757;
+      --text:#f0eeff;--muted:#6a688a;--border:rgba(255,255,255,0.07);
       --radius:18px;
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
-    body{
-      font-family:'Nunito',sans-serif;
-      background:var(--bg); color:var(--text);
-      min-height:100vh; overflow-x:hidden;
-    }
+    body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    .ambient{position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:radial-gradient(ellipse 60% 40% at 15% 15%,rgba(74,158,255,.08) 0%,transparent 55%),
+                 radial-gradient(ellipse 50% 50% at 85% 80%,rgba(245,200,66,.06) 0%,transparent 50%),
+                 radial-gradient(ellipse 40% 60% at 50% 50%,rgba(168,85,247,.04) 0%,transparent 55%)}
 
-    /* ── AMBIENT BG ── */
-    .ambient{
-      position:fixed;inset:0;pointer-events:none;z-index:0;
-      background:
-        radial-gradient(ellipse 60% 40% at 15% 15%,rgba(74,158,255,.07) 0%,transparent 60%),
-        radial-gradient(ellipse 50% 50% at 85% 80%,rgba(245,200,66,.05) 0%,transparent 55%),
-        radial-gradient(ellipse 40% 60% at 50% 50%,rgba(168,85,247,.04) 0%,transparent 55%);
-    }
+    /* NAV */
+    nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;
+      padding:10px 16px;background:rgba(7,7,15,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.45em;letter-spacing:2px;
+      background:linear-gradient(135deg,#fff 30%,var(--gold) 70%);-webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;background-clip:text}
+    .nav-right{display:flex;align-items:center;gap:5px}
+    .nav-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Nunito',sans-serif;
+      font-size:.76em;font-weight:700;letter-spacing:.5px;padding:5px 11px;border-radius:50px;cursor:pointer;transition:all .2s}
+    .nav-btn:hover,.nav-btn.active{background:var(--surface2);color:var(--text);border-color:rgba(255,255,255,.18)}
+    #soundToggle{font-size:1em;padding:5px 9px;border:1px solid var(--border);background:none;
+      border-radius:50px;cursor:pointer;transition:all .2s;color:var(--muted)}
+    #soundToggle:hover{background:var(--surface2);color:var(--text)}
 
-    /* ── NAVBAR ── */
-    nav{
-      position:sticky;top:0;z-index:100;
-      display:flex;align-items:center;justify-content:space-between;
-      padding:12px 20px;
-      background:rgba(8,8,16,.85);
-      backdrop-filter:blur(20px);
-      border-bottom:1px solid var(--border);
-    }
-    .nav-logo{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:1.5em;letter-spacing:2px;
-      background:linear-gradient(135deg,#fff 30%,var(--gold) 70%);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    }
-    .nav-links{display:flex;gap:6px}
-    .nav-btn{
-      background:none;border:1px solid var(--border);
-      color:var(--muted);font-family:'Nunito',sans-serif;
-      font-size:.82em;font-weight:700;letter-spacing:.5px;
-      padding:6px 14px;border-radius:50px;cursor:pointer;
-      transition:all .2s;
-    }
-    .nav-btn:hover,.nav-btn.active{
-      background:var(--surface2);color:var(--text);
-      border-color:rgba(255,255,255,.15);
-    }
+    /* TICKER */
+    .ticker-wrap{width:100%;background:linear-gradient(90deg,rgba(245,200,66,.1),rgba(245,200,66,.05));
+      border-bottom:1px solid rgba(245,200,66,.14);padding:7px 0;overflow:hidden;position:relative;z-index:10}
+    .ticker-track{display:flex;white-space:nowrap;animation:tickerScroll 45s linear infinite}
+    .ticker-wrap:hover .ticker-track{animation-play-state:paused}
+    .ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 28px;font-size:.76em;font-weight:700;color:var(--gold-light)}
+    .ticker-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;box-shadow:0 0 5px rgba(245,200,66,.7)}
+    @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
-    /* ── PAGE SYSTEM ── */
+    /* PAGES */
     .page{display:none;position:relative;z-index:1}
     .page.active{display:block}
-
-    /* ── MAIN GAME PAGE ── */
-    #page-game{
-      display:flex;flex-direction:column;align-items:center;
-      padding:20px 16px 48px;max-width:600px;margin:0 auto;
-    }
+    #page-game{display:flex;flex-direction:column;align-items:center;padding:16px 14px 52px;max-width:600px;margin:0 auto}
     #page-game.active{display:flex}
 
-    /* header */
-    .game-header{text-align:center;margin-bottom:16px;animation:fadeDown .7s ease both}
-    .badge{
-      display:inline-flex;align-items:center;gap:6px;
-      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
-      color:#1a0a00;font-size:.7em;font-weight:900;
-      letter-spacing:2px;text-transform:uppercase;
-      padding:4px 14px;border-radius:20px;margin-bottom:10px;
-    }
-    h1.game-title{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2.6em,9vw,4em);letter-spacing:3px;line-height:1;
+    /* HEADER */
+    .game-header{text-align:center;margin-bottom:10px;animation:fadeDown .7s ease both}
+    .badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      color:#1a0a00;font-size:.67em;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+      padding:4px 13px;border-radius:20px;margin-bottom:7px}
+    h1.game-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4em,8vw,3.8em);letter-spacing:3px;line-height:1;
       background:linear-gradient(140deg,#fff 20%,var(--gold) 60%,#ff9500 100%);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-      margin-bottom:6px;
-    }
-    .game-sub{font-size:.9em;color:var(--muted);font-weight:600}
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+    .game-sub{font-size:.87em;color:var(--muted);font-weight:600}
 
-    /* spins bar */
-    .spins-bar{
-      display:flex;align-items:center;gap:12px;
-      margin-bottom:18px;
-      background:var(--surface);
-      border:1px solid rgba(245,200,66,.12);
-      border-radius:50px;padding:9px 22px;
-      animation:fadeDown .8s .1s ease both;
-    }
-    .spins-label{font-size:.8em;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase}
-    .spins-dots{display:flex;gap:8px}
-    .sdot{
-      width:14px;height:14px;border-radius:50%;
-      background:var(--gold);
-      box-shadow:0 0 10px rgba(245,200,66,.55);
-      transition:all .4s ease;
-    }
-    .sdot.used{background:#2a2a3a;box-shadow:none}
+    /* STATS */
+    .stats-bar{display:flex;gap:8px;margin-bottom:12px;width:100%;animation:fadeDown .8s .1s ease both}
+    .stat-pill{flex:1;display:flex;flex-direction:column;align-items:center;
+      background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:7px 5px}
+    .sp-num{font-family:'Bebas Neue',sans-serif;font-size:1.25em;letter-spacing:1px;color:var(--gold)}
+    .sp-lbl{font-size:.63em;color:var(--muted);font-weight:800;letter-spacing:.5px;text-transform:uppercase}
 
-    /* wheel section */
-    .wheel-section{
-      position:relative;
-      width:min(86vw,380px);height:min(86vw,380px);
-      margin-bottom:10px;
-      animation:fadeUp .9s .2s ease both;
-    }
-    .wheel-glow{
-      position:absolute;inset:-14px;border-radius:50%;
-      background:conic-gradient(#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6,#e91e63,#ff5722,#00bcd4,#8bc34a,#e74c3c);
-      opacity:.35;filter:blur(14px);z-index:0;
-      animation:rotateSlow 10s linear infinite;
-    }
-    #wheel{
-      position:relative;z-index:1;
-      width:100%;height:100%;
-      border-radius:50%;
+    /* SPINS STATUS */
+    .spin-status{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:12px;animation:fadeDown .85s .15s ease both}
+    .spins-bar{display:flex;align-items:center;gap:10px;background:var(--surface);
+      border:1px solid rgba(245,200,66,.15);border-radius:50px;padding:7px 18px}
+    .spins-label{font-size:.77em;color:var(--muted);font-weight:800;letter-spacing:1px;text-transform:uppercase}
+    .spins-dots{display:flex;gap:7px}
+    .sdot{width:12px;height:12px;border-radius:50%;background:var(--gold);box-shadow:0 0 9px rgba(245,200,66,.55);transition:all .4s}
+    .sdot.used{background:#222232;box-shadow:none}
+    .countdown-bar{display:none;align-items:center;gap:8px;
+      background:linear-gradient(135deg,rgba(255,71,87,.12),rgba(255,71,87,.06));
+      border:1px solid rgba(255,71,87,.25);border-radius:50px;padding:7px 18px}
+    .countdown-bar.visible{display:flex}
+    .cd-label{font-size:.76em;color:#ff8090;font-weight:800;letter-spacing:.5px}
+    #cdTimer{font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:2px;color:var(--red)}
+
+    /* WHEEL */
+    .wheel-section{position:relative;width:min(84vw,370px);height:min(84vw,370px);margin-bottom:6px;animation:fadeUp .9s .2s ease both}
+    .wheel-glow{position:absolute;inset:-12px;border-radius:50%;
+      background:conic-gradient(#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6,#e91e63,#ff5722,#00bcd4,#8bc34a,#ffd700,#888,#e74c3c);
+      opacity:.3;filter:blur(14px);z-index:0;animation:rotateSlow 12s linear infinite}
+    #wheel{position:relative;z-index:1;width:100%;height:100%;border-radius:50%;
       border:5px solid var(--gold);
-      box-shadow:var(--shadow-gold),inset 0 0 40px rgba(0,0,0,.4);
-      transition:transform 6s cubic-bezier(0.15,0.65,0.1,1);
-      will-change:transform;
-    }
-    /* wheel drawn by canvas */
-    #wheelCanvas{
-      position:absolute;inset:0;width:100%;height:100%;
-      border-radius:50%;z-index:2;pointer-events:none;
-    }
-    .wheel-hub{
-      position:absolute;top:50%;left:50%;
-      transform:translate(-50%,-50%);
-      width:50px;height:50px;border-radius:50%;
+      box-shadow:0 0 26px rgba(245,200,66,.38),inset 0 0 40px rgba(0,0,0,.45);
+      transition:transform 6s cubic-bezier(0.15,0.65,0.1,1);will-change:transform}
+    #wheelCanvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;z-index:2;pointer-events:none}
+    .wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      width:46px;height:46px;border-radius:50%;
       background:radial-gradient(circle at 35% 35%,#fff 0%,var(--gold) 55%,#a07000 100%);
-      border:3px solid rgba(255,255,255,.2);
-      box-shadow:0 0 16px rgba(245,200,66,.7);
-      z-index:10;
-    }
-    /* pointer */
-    .pointer{
-      position:absolute;top:-18px;left:50%;
-      transform:translateX(-50%);z-index:20;
-      display:flex;flex-direction:column;align-items:center;
-    }
-    .ptr-cap{
-      width:22px;height:22px;border-radius:50%;
-      background:radial-gradient(circle at 35% 35%,#fff 0%,var(--gold) 60%);
-      box-shadow:0 0 10px rgba(245,200,66,.9);
-      z-index:2;
-    }
-    .ptr-body{
-      width:0;height:0;
-      border-left:16px solid transparent;
-      border-right:16px solid transparent;
-      border-top:38px solid var(--gold);
-      filter:drop-shadow(0 4px 8px rgba(245,200,66,.55));
-      margin-top:-4px;
-    }
+      border:3px solid rgba(255,255,255,.2);box-shadow:0 0 14px rgba(245,200,66,.7);z-index:10}
+    .pointer{position:absolute;top:-15px;left:50%;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;align-items:center}
+    .ptr-cap{width:19px;height:19px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff 0%,var(--gold) 60%);box-shadow:0 0 9px rgba(245,200,66,.9);z-index:2}
+    .ptr-body{width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;
+      border-top:34px solid var(--gold);filter:drop-shadow(0 3px 7px rgba(245,200,66,.5));margin-top:-3px}
 
-    /* spin button */
-    .spin-wrap{margin:16px 0 4px;animation:fadeUp 1s .3s ease both}
-    #spinBtn{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:1.9em;letter-spacing:3px;
-      padding:15px 70px;border-radius:60px;border:none;cursor:pointer;
-      background:linear-gradient(135deg,var(--gold) 0%,#ff9500 100%);
-      color:#1a0a00;
-      box-shadow:0 6px 32px rgba(245,200,66,.4),0 2px 0 rgba(0,0,0,.3);
-      transition:transform .15s,box-shadow .15s;
-      position:relative;overflow:hidden;
-    }
-    #spinBtn::after{
-      content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
-      transition:left .45s;
-    }
+    /* SPIN BUTTON */
+    .spin-wrap{margin:11px 0 4px;animation:fadeUp 1s .3s ease both}
+    #spinBtn{font-family:'Bebas Neue',sans-serif;font-size:1.85em;letter-spacing:3px;
+      padding:14px 66px;border-radius:60px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,var(--gold) 0%,#ff9500 100%);color:#1a0a00;
+      box-shadow:0 6px 28px rgba(245,200,66,.4),0 2px 0 rgba(0,0,0,.3);
+      transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden}
+    #spinBtn::after{content:'';position:absolute;top:0;left:-100%;width:55%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transition:left .45s}
     #spinBtn:hover:not(:disabled)::after{left:160%}
-    #spinBtn:hover:not(:disabled){transform:translateY(-3px) scale(1.03);box-shadow:0 12px 40px rgba(245,200,66,.5),0 2px 0 rgba(0,0,0,.3)}
+    #spinBtn:hover:not(:disabled){transform:translateY(-3px) scale(1.03);box-shadow:0 12px 38px rgba(245,200,66,.5),0 2px 0 rgba(0,0,0,.3)}
     #spinBtn:active:not(:disabled){transform:translateY(1px) scale(.98)}
-    #spinBtn:disabled{background:linear-gradient(135deg,#2e2e44,#1e1e30);color:#55536e;cursor:not-allowed;box-shadow:none}
+    #spinBtn:disabled{background:linear-gradient(135deg,#232333,#151523);color:#454360;cursor:not-allowed;box-shadow:none}
 
-    /* result */
-    #result{
-      min-height:88px;display:flex;align-items:center;justify-content:center;
-      flex-direction:column;gap:4px;
-      text-align:center;padding:0 12px;
-      transition:all .4s ease;
-    }
-    #result .r-hint{font-size:.95em;color:var(--muted);font-weight:700}
+    /* RESULT */
+    #result{min-height:88px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;text-align:center;padding:0 12px}
+    #result .r-hint{font-size:.91em;color:var(--muted);font-weight:700}
     #result.spinning .r-hint{color:var(--gold);animation:pulse .55s infinite alternate}
-    #result .r-prize{
-      font-family:'Bebas Neue',sans-serif;font-size:2.4em;letter-spacing:2px;line-height:1.1;
-      background:linear-gradient(135deg,var(--green),#00c8ff);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    }
+    #result .r-prize{font-family:'Bebas Neue',sans-serif;font-size:2.3em;letter-spacing:2px;line-height:1.1;
+      background:linear-gradient(135deg,var(--green),#00c8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    #result .r-prize.cash{background:linear-gradient(135deg,var(--gold),#ff9500);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    #result .r-prize.tryagain{background:linear-gradient(135deg,#6a688a,#8888aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    @keyframes revealPrize{0%{opacity:0;transform:scale(.35) rotateY(90deg)}65%{transform:scale(1.12) rotateY(-4deg)}100%{opacity:1;transform:scale(1) rotateY(0)}}
+    .prize-reveal{animation:revealPrize .6s cubic-bezier(.34,1.56,.64,1) both}
 
-    /* claim card */
-    #claimSection{
-      display:none;width:100%;margin-top:14px;
+    /* CLAIM */
+    #claimSection{display:none;width:100%;margin-top:11px;
       background:linear-gradient(135deg,var(--surface),var(--surface2));
-      border:1px solid rgba(74,158,255,.3);border-radius:var(--radius);
-      padding:26px 22px;text-align:center;
-      animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both;
-    }
-    .claim-icon{font-size:2.5em;margin-bottom:6px}
-    .claim-title{font-family:'Bebas Neue',sans-serif;font-size:2em;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
-    .claim-prize-badge{
-      display:inline-block;
-      background:linear-gradient(135deg,rgba(0,230,118,.15),rgba(0,200,255,.15));
-      border:1px solid rgba(0,230,118,.3);
-      color:var(--green);font-weight:800;font-size:1.1em;
-      padding:8px 22px;border-radius:50px;margin-bottom:14px;
-    }
-    .claim-desc{color:var(--muted);font-size:.88em;line-height:1.6;margin-bottom:18px}
-    #claimBtn{
-      font-family:'Bebas Neue',sans-serif;font-size:1.55em;letter-spacing:2px;
-      padding:14px 52px;
-      background:linear-gradient(135deg,var(--blue),#1565c0);
-      color:#fff;border:none;border-radius:50px;cursor:pointer;
-      box-shadow:0 6px 24px rgba(74,158,255,.4);
-      transition:transform .15s,box-shadow .15s;
-    }
-    #claimBtn:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(74,158,255,.5)}
+      border:1px solid rgba(74,158,255,.28);border-radius:var(--radius);
+      padding:20px 18px;text-align:center;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
+    .claim-icon{font-size:2.2em;margin-bottom:4px}
+    .claim-title{font-family:'Bebas Neue',sans-serif;font-size:1.85em;letter-spacing:2px;color:var(--gold);margin-bottom:5px}
+    .claim-prize-badge{display:inline-block;background:linear-gradient(135deg,rgba(0,230,118,.14),rgba(0,200,255,.12));
+      border:1px solid rgba(0,230,118,.28);color:var(--green);font-weight:800;font-size:.98em;
+      padding:5px 16px;border-radius:50px;margin-bottom:11px}
+    .claim-prize-badge.cash{background:linear-gradient(135deg,rgba(245,200,66,.16),rgba(255,149,0,.1));border-color:rgba(245,200,66,.4);color:var(--gold)}
+    .claim-desc{color:var(--muted);font-size:.84em;line-height:1.6;margin-bottom:14px}
+    .claim-actions{display:flex;flex-direction:column;gap:9px;align-items:center}
+    #claimBtn{font-family:'Bebas Neue',sans-serif;font-size:1.4em;letter-spacing:2px;
+      padding:12px 44px;background:linear-gradient(135deg,var(--blue),#1565c0);color:#fff;
+      border:none;border-radius:50px;cursor:pointer;box-shadow:0 5px 20px rgba(74,158,255,.38);
+      transition:transform .15s,box-shadow .15s;text-decoration:none;display:inline-block}
+    #claimBtn:hover{transform:translateY(-2px);box-shadow:0 9px 28px rgba(74,158,255,.5)}
+    #shareBtn{font-family:'Bebas Neue',sans-serif;font-size:1.1em;letter-spacing:1.5px;
+      padding:9px 32px;background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(74,158,255,.18));
+      border:1px solid rgba(168,85,247,.35);color:#c0a0ff;border-radius:50px;cursor:pointer;transition:all .2s}
+    #shareBtn:hover{background:linear-gradient(135deg,rgba(168,85,247,.45),rgba(74,158,255,.3));color:#fff}
 
-    /* no spins */
-    .no-spins{
-      display:none;margin-top:10px;
-      background:var(--surface);border:1px solid var(--border);
-      border-radius:var(--radius);padding:18px 20px;
-      text-align:center;font-size:.9em;color:var(--muted);line-height:1.6;
-    }
+    /* TRY AGAIN */
+    #tryAgainSection{display:none;width:100%;margin-top:11px;
+      background:linear-gradient(135deg,var(--surface),var(--surface2));
+      border:1px solid rgba(106,104,138,.25);border-radius:var(--radius);
+      padding:18px;text-align:center;animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both}
+    .try-icon{font-size:2em;margin-bottom:4px}
+    .try-title{font-family:'Bebas Neue',sans-serif;font-size:1.65em;letter-spacing:2px;color:var(--muted);margin-bottom:5px}
+    .try-desc{color:var(--muted);font-size:.84em;line-height:1.5}
+
+    /* NO SPINS */
+    .no-spins{display:none;width:100%;margin-top:10px;
+      background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:16px 18px;text-align:center;font-size:.86em;color:var(--muted);line-height:1.6}
     .no-spins strong{color:var(--gold)}
 
-    /* prize legend */
-    .prize-legend{
-      width:100%;margin-top:28px;
-      background:var(--surface);border:1px solid var(--border);
-      border-radius:var(--radius);padding:18px;
-      animation:fadeUp 1.1s .4s ease both;
-    }
-    .legend-title{
-      font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:2px;
-      color:var(--muted);margin-bottom:14px;text-align:center;
-    }
-    .legend-grid{
-      display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
-      gap:8px;
-    }
-    .legend-item{
-      display:flex;align-items:center;gap:8px;
-      background:var(--surface2);border-radius:10px;
-      padding:8px 10px;font-size:.8em;font-weight:700;
-    }
-    .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    /* HISTORY */
+    .history-section{width:100%;margin-top:16px;animation:fadeUp 1.1s .4s ease both}
+    .section-title{font-family:'Bebas Neue',sans-serif;font-size:1.05em;letter-spacing:2px;color:var(--muted);
+      margin-bottom:9px;display:flex;align-items:center;gap:8px}
+    .section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+    #spinHistory{display:flex;flex-direction:column;gap:6px}
+    .history-item{display:flex;align-items:center;justify-content:space-between;
+      background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:9px 13px;
+      animation:slideIn .35s ease both}
+    .hi-left{display:flex;align-items:center;gap:9px}
+    .hi-emoji{font-size:1.25em}
+    .hi-name{font-weight:800;font-size:.86em}
+    .hi-time{font-size:.73em;color:var(--muted)}
+    .hi-badge{font-size:.68em;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.5px}
+    .hi-badge.win{background:rgba(0,230,118,.14);color:var(--green);border:1px solid rgba(0,230,118,.22)}
+    .hi-badge.cash{background:rgba(245,200,66,.14);color:var(--gold);border:1px solid rgba(245,200,66,.22)}
+    .hi-badge.try{background:rgba(106,104,138,.14);color:var(--muted);border:1px solid rgba(106,104,138,.22)}
+    @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+    /* LEGEND */
+    .prize-legend{width:100%;margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+    .legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:6px;margin-top:9px}
+    .legend-item{display:flex;align-items:center;gap:7px;background:var(--surface2);border-radius:10px;padding:7px 9px;font-size:.76em;font-weight:700}
+    .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
     /* HOW TO PLAY */
-    .how-section{
-      width:100%;margin-top:20px;
-      border-radius:var(--radius);overflow:hidden;
-      border:1px solid var(--border);
-      animation:fadeUp 1.2s .5s ease both;
-    }
-    .how-header{
-      background:var(--surface);padding:14px 18px;
-      display:flex;justify-content:space-between;align-items:center;
-      cursor:pointer;user-select:none;
-    }
-    .how-header span{font-family:'Bebas Neue',sans-serif;font-size:1.15em;letter-spacing:2px;color:var(--muted)}
-    .how-header .chevron{color:var(--muted);transition:transform .3s;font-size:1.1em}
-    .how-body{
-      display:none;background:var(--surface2);padding:16px 20px;
-      border-top:1px solid var(--border);
-    }
+    .how-section{width:100%;margin-top:11px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+    .how-header{background:var(--surface);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+    .how-header span{font-family:'Bebas Neue',sans-serif;font-size:1.05em;letter-spacing:2px;color:var(--muted)}
+    .chevron{color:var(--muted);transition:transform .3s}
+    .how-body{display:none;background:var(--surface2);padding:13px 16px;border-top:1px solid var(--border)}
     .how-body.open{display:block}
-    .how-step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+    .how-step{display:flex;gap:11px;align-items:flex-start;margin-bottom:11px}
     .how-step:last-child{margin-bottom:0}
-    .step-num{
-      min-width:28px;height:28px;border-radius:50%;
-      background:linear-gradient(135deg,var(--gold),var(--gold-dark));
-      color:#1a0a00;font-weight:900;font-size:.85em;
-      display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    }
-    .step-text{font-size:.88em;color:var(--muted);line-height:1.5;padding-top:4px}
+    .step-num{min-width:25px;height:25px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+      color:#1a0a00;font-weight:900;font-size:.8em;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .step-text{font-size:.83em;color:var(--muted);line-height:1.5;padding-top:3px}
     .step-text strong{color:var(--text)}
+    .disclaimer{margin-top:26px;font-size:.69em;color:#2e2c48;text-align:center;line-height:1.6;padding:0 8px;max-width:480px}
 
-    /* disclaimer */
-    .disclaimer{margin-top:30px;font-size:.72em;color:#363550;text-align:center;line-height:1.6;padding:0 8px;max-width:480px}
-
-    /* ─────────────────────────────────────────
-       SUPPORT PAGE
-    ───────────────────────────────────────── */
-    #page-support,#page-about{
-      max-width:600px;margin:0 auto;
-      padding:30px 20px 60px;
-    }
-    .inner-page-title{
-      font-family:'Bebas Neue',sans-serif;
-      font-size:clamp(2em,7vw,3em);letter-spacing:3px;
-      background:linear-gradient(135deg,#fff 30%,var(--gold) 70%);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-      margin-bottom:6px;
-    }
-    .inner-page-sub{font-size:.9em;color:var(--muted);margin-bottom:28px;font-weight:600}
-    .card{
-      background:var(--surface);border:1px solid var(--border);
-      border-radius:var(--radius);padding:22px;margin-bottom:16px;
-    }
-    .card-icon{font-size:1.8em;margin-bottom:8px}
-    .card h3{font-family:'Bebas Neue',sans-serif;font-size:1.3em;letter-spacing:2px;color:var(--gold);margin-bottom:8px}
-    .card p,.card li{font-size:.9em;color:var(--muted);line-height:1.6}
-    .card ul{padding-left:18px}
-    .card li{margin-bottom:6px}
-    .faq-item{margin-bottom:0}
-    .faq-q{
-      font-weight:800;font-size:.9em;color:var(--text);
-      padding:14px 0;border-bottom:1px solid var(--border);
-      cursor:pointer;display:flex;justify-content:space-between;align-items:center;
-      user-select:none;
-    }
-    .faq-q:first-child{padding-top:0}
-    .faq-q .fchev{color:var(--muted);transition:transform .25s;font-size:.9em}
-    .faq-a{display:none;font-size:.88em;color:var(--muted);padding:12px 0 14px;line-height:1.6;border-bottom:1px solid var(--border)}
+    /* SUPPORT / ABOUT */
+    #page-support,#page-about{max-width:600px;margin:0 auto;padding:26px 16px 56px}
+    .inner-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.85em,6vw,2.7em);letter-spacing:3px;
+      background:linear-gradient(135deg,#fff 30%,var(--gold) 70%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+    .inner-sub{font-size:.86em;color:var(--muted);margin-bottom:22px;font-weight:600}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px}
+    .card-icon{font-size:1.6em;margin-bottom:5px}
+    .card h3{font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:2px;color:var(--gold);margin-bottom:7px}
+    .card p,.card li{font-size:.85em;color:var(--muted);line-height:1.6}
+    .card ul{padding-left:15px}.card li{margin-bottom:5px}
+    .faq-q{font-weight:800;font-size:.86em;color:var(--text);padding:12px 0;border-bottom:1px solid var(--border);
+      cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+    .faq-q:first-child{padding-top:0}.fchev{color:var(--muted);font-size:.82em}
+    .faq-a{display:none;font-size:.83em;color:var(--muted);padding:9px 0 11px;line-height:1.6;border-bottom:1px solid var(--border)}
     .faq-a.open{display:block}
-    .contact-btn{
-      display:inline-flex;align-items:center;gap:8px;
-      font-family:'Bebas Neue',sans-serif;font-size:1.2em;letter-spacing:2px;
-      padding:12px 32px;border-radius:50px;border:none;cursor:pointer;
-      text-decoration:none;margin-top:12px;
-      background:linear-gradient(135deg,var(--blue),#1565c0);
-      color:#fff;box-shadow:0 4px 20px rgba(74,158,255,.35);
-      transition:transform .15s,box-shadow .15s;
-    }
-    .contact-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(74,158,255,.5)}
+    .contact-btn{display:inline-flex;align-items:center;gap:7px;font-family:'Bebas Neue',sans-serif;
+      font-size:1.1em;letter-spacing:2px;padding:10px 28px;border-radius:50px;border:none;cursor:pointer;
+      text-decoration:none;margin-top:9px;background:linear-gradient(135deg,var(--blue),#1565c0);
+      color:#fff;box-shadow:0 4px 16px rgba(74,158,255,.32);transition:transform .15s,box-shadow .15s}
+    .contact-btn:hover{transform:translateY(-2px);box-shadow:0 7px 24px rgba(74,158,255,.48)}
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+    .stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:13px;text-align:center}
+    .stat-num{font-family:'Bebas Neue',sans-serif;font-size:1.8em;letter-spacing:1px;color:var(--gold)}
+    .stat-lbl{font-size:.68em;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 
-    /* about page */
-    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
-    .stat-card{
-      background:var(--surface2);border:1px solid var(--border);border-radius:14px;
-      padding:16px;text-align:center;
-    }
-    .stat-num{font-family:'Bebas Neue',sans-serif;font-size:2em;letter-spacing:1px;color:var(--gold)}
-    .stat-lbl{font-size:.75em;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
-    .team-row{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-    .avatar{
-      width:48px;height:48px;border-radius:50%;
-      background:linear-gradient(135deg,var(--purple),var(--blue));
-      display:flex;align-items:center;justify-content:center;
-      font-size:1.4em;flex-shrink:0;
-    }
-    .team-info h4{font-size:.95em;font-weight:800;margin-bottom:2px}
-    .team-info span{font-size:.8em;color:var(--muted)}
-
-    /* ── SHARED ANIMATIONS ── */
-    @keyframes fadeDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    /* ANIMATIONS */
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
     @keyframes popIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
-    @keyframes pulse{from{opacity:.65}to{opacity:1}}
+    @keyframes pulse{from{opacity:.6}to{opacity:1}}
     @keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    @keyframes winRing{
-      0%,100%{box-shadow:var(--shadow-gold),inset 0 0 40px rgba(0,0,0,.4);border-color:var(--gold)}
-      50%{box-shadow:0 0 60px rgba(0,230,118,.7),inset 0 0 40px rgba(0,0,0,.4);border-color:var(--green)}
-    }
+    @keyframes winRing{0%,100%{box-shadow:0 0 26px rgba(245,200,66,.38),inset 0 0 40px rgba(0,0,0,.45);border-color:var(--gold)}50%{box-shadow:0 0 58px rgba(0,230,118,.72),inset 0 0 40px rgba(0,0,0,.45);border-color:var(--green)}}
+    @keyframes cashRing{0%,100%{box-shadow:0 0 26px rgba(245,200,66,.38),inset 0 0 40px rgba(0,0,0,.45);border-color:var(--gold)}50%{box-shadow:0 0 68px rgba(255,215,0,.95),inset 0 0 40px rgba(0,0,0,.45);border-color:#fff}}
     .wheel-win #wheel{animation:winRing .85s ease-in-out 4}
+    .wheel-cash #wheel{animation:cashRing .7s ease-in-out 5}
 
-    /* mobile tweaks */
     @media(max-width:480px){
-      #spinBtn{font-size:1.6em;padding:14px 50px}
+      #spinBtn{font-size:1.55em;padding:13px 46px}
       .legend-grid{grid-template-columns:repeat(2,1fr)}
-      .stat-grid{grid-template-columns:repeat(3,1fr);gap:8px}
-      .stat-num{font-size:1.5em}
+      .stats-bar{gap:5px}.sp-num{font-size:1.1em}
     }
   </style>
 </head>
 <body>
 <div class="ambient"></div>
 
-<!-- NAV -->
 <nav>
   <div class="nav-logo">🎡 SpinWin</div>
-  <div class="nav-links">
+  <div class="nav-right">
+    <button id="soundToggle" title="Toggle sound">🔊</button>
     <button class="nav-btn active" onclick="showPage('game',this)">🎰 Play</button>
     <button class="nav-btn" onclick="showPage('support',this)">💬 Support</button>
     <button class="nav-btn" onclick="showPage('about',this)">ℹ️ About</button>
   </div>
 </nav>
 
-<!-- ══════════════ GAME PAGE ══════════════ -->
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<!-- GAME PAGE -->
 <div class="page active" id="page-game">
   <div class="game-header">
     <div class="badge">🎁 Limited Time Giveaway</div>
     <h1 class="game-title">Spin &amp; Win!</h1>
-    <p class="game-sub">Free iPhones, iPads &amp; Laptops — Every Spin Wins!</p>
+    <p class="game-sub">Free iPhones, $3,000 Cash &amp; More — Spin Every 4 Hours!</p>
   </div>
 
-  <div class="spins-bar">
-    <span class="spins-label">Free Spins</span>
-    <div class="spins-dots" id="spinDots"></div>
+  <div class="stats-bar">
+    <div class="stat-pill"><div class="sp-num" id="statClaimed">2,847</div><div class="sp-lbl">Claimed</div></div>
+    <div class="stat-pill"><div class="sp-num">13</div><div class="sp-lbl">Prizes</div></div>
+    <div class="stat-pill"><div class="sp-num" id="statOnline">142</div><div class="sp-lbl">Online</div></div>
+  </div>
+
+  <div class="spin-status">
+    <div class="spins-bar">
+      <span class="spins-label">Today's Spins</span>
+      <div class="spins-dots" id="spinDots"></div>
+    </div>
+    <div class="countdown-bar" id="countdownBar">
+      <span class="cd-label">⏳ Next spin in</span>
+      <span id="cdTimer">4:00:00</span>
+    </div>
   </div>
 
   <div class="wheel-section" id="wheelWrap">
@@ -416,544 +299,452 @@
       <canvas id="wheelCanvas"></canvas>
       <div class="wheel-hub"></div>
     </div>
-    <div class="pointer">
-      <div class="ptr-cap"></div>
-      <div class="ptr-body"></div>
-    </div>
+    <div class="pointer"><div class="ptr-cap"></div><div class="ptr-body"></div></div>
   </div>
 
-  <div class="spin-wrap">
-    <button id="spinBtn">🎰 SPIN NOW!</button>
-  </div>
+  <div class="spin-wrap"><button id="spinBtn">🎰 SPIN NOW!</button></div>
 
-  <div id="result">
-    <span class="r-hint">Tap the button to spin the wheel!</span>
-  </div>
+  <div id="result"><span class="r-hint">Tap the button to spin the wheel!</span></div>
 
   <div id="claimSection">
     <div class="claim-icon">🏆</div>
     <div class="claim-title">You Won!</div>
-    <div class="claim-prize-badge" id="claimPrizeBadge"></div>
-    <p class="claim-desc">Tap the button below to open Messenger with your winning details. Add your name, phone number &amp; address — then hit send!</p>
-    <a id="claimLink" href="#" target="_blank" rel="noopener noreferrer">
-      <button id="claimBtn">💬 Claim via Messenger</button>
-    </a>
-    <p style="margin-top:12px;font-size:.8em;color:#4a4870">We verify &amp; arrange delivery as fast as possible ⚡</p>
+    <div class="claim-prize-badge" id="claimBadge"></div>
+    <p class="claim-desc">Click below to open Messenger with your winning details pre-filled. Add your name, phone &amp; address — then send!</p>
+    <div class="claim-actions">
+      <a id="claimLink" href="#" target="_blank" rel="noopener noreferrer"><button id="claimBtn">💬 Claim via Messenger</button></a>
+      <button id="shareBtn" onclick="shareWin()">🔗 Share Your Win!</button>
+    </div>
+    <p style="margin-top:10px;font-size:.77em;color:#4a4870">We verify &amp; arrange delivery as fast as possible ⚡</p>
+  </div>
+
+  <div id="tryAgainSection">
+    <div class="try-icon">🎡</div>
+    <div class="try-title">Better Luck Next Time!</div>
+    <p class="try-desc">You landed on <strong>Try Again</strong> — come back in 4 hours. Your next spin could be the big one! 🏆</p>
   </div>
 
   <div class="no-spins" id="noSpinsMsg">
-    <strong>🎡 You've used all 3 free spins today!</strong><br>
-    Come back tomorrow for more chances to win amazing prizes.
+    <strong>🎡 All 3 spins used this session!</strong><br>
+    You get 3 spins every 4 hours. The countdown above shows exactly when you're back.
   </div>
 
-  <!-- Prize Legend -->
+  <div class="history-section">
+    <div class="section-title">📋 Your Spin History</div>
+    <div id="spinHistory"></div>
+  </div>
+
   <div class="prize-legend">
-    <div class="legend-title">🎁 Possible Prizes</div>
+    <div class="section-title">🎁 Possible Prizes</div>
     <div class="legend-grid" id="legendGrid"></div>
   </div>
 
-  <!-- How to Play -->
   <div class="how-section">
     <div class="how-header" onclick="toggleHow()">
-      <span>📖 How to Play</span>
-      <span class="chevron" id="howChev">▼</span>
+      <span>📖 How to Play</span><span class="chevron" id="howChev">▼</span>
     </div>
     <div class="how-body" id="howBody">
-      <div class="how-step">
-        <div class="step-num">1</div>
-        <div class="step-text"><strong>Click "SPIN NOW!"</strong> to spin the wheel. You get <strong>3 free spins</strong> every day.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">2</div>
-        <div class="step-text">Watch the wheel land on your prize — <strong>every spin wins something!</strong></div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">3</div>
-        <div class="step-text"><strong>Click "Claim via Messenger"</strong> and send your name, phone &amp; address to our team.</div>
-      </div>
-      <div class="how-step">
-        <div class="step-num">4</div>
-        <div class="step-text">Our team <strong>verifies your win</strong> and arranges delivery straight to your door!</div>
-      </div>
+      <div class="how-step"><div class="step-num">1</div><div class="step-text"><strong>Click "SPIN NOW!"</strong> — you get 1 spin per session, 3 sessions every 4 hours.</div></div>
+      <div class="how-step"><div class="step-num">2</div><div class="step-text">The wheel lands on your prize — could be an <strong>iPhone, iPad, MacBook, $3,000 Cash</strong> or Try Again!</div></div>
+      <div class="how-step"><div class="step-num">3</div><div class="step-text">When you win, click <strong>"Claim via Messenger"</strong> and send your name, phone &amp; delivery address.</div></div>
+      <div class="how-step"><div class="step-num">4</div><div class="step-text">Our team <strong>verifies &amp; ships</strong> your prize straight to your door!</div></div>
+      <div class="how-step"><div class="step-num">5</div><div class="step-text">Watch the <strong>countdown timer</strong> — come back every 4 hours for fresh spins!</div></div>
     </div>
   </div>
 
-  <p class="disclaimer">
-    This promotion is not sponsored, endorsed, or administered by Meta/Facebook.
-    Open to US residents 18+. Only pay if prize is guaranteed by the page admin.
-    Void where prohibited. Winners contacted via Messenger for verification.
-  </p>
+  <p class="disclaimer">This promotion is not sponsored, endorsed, or administered by Meta/Facebook.
+    Open to US residents 18+. Only pay if prize is guaranteed by page admin.
+    Void where prohibited. Winners contacted via Messenger for verification.</p>
 </div>
 
-<!-- ══════════════ SUPPORT PAGE ══════════════ -->
+<!-- SUPPORT PAGE -->
 <div class="page" id="page-support">
-  <h2 class="inner-page-title">Support</h2>
-  <p class="inner-page-sub">We're here to help — get answers fast.</p>
-
+  <h2 class="inner-title">Support</h2>
+  <p class="inner-sub">Get answers fast — we're here to help.</p>
   <div class="card">
     <div class="card-icon">❓</div>
     <h3>Frequently Asked Questions</h3>
-    <div class="faq-item">
-      <div class="faq-q" onclick="toggleFaq(this)">How many spins do I get? <span class="fchev">▼</span></div>
-      <div class="faq-a">You get <strong>3 free spins</strong> every day. Your spin count resets at midnight local time.</div>
-      <div class="faq-q" onclick="toggleFaq(this)">Is this really free? <span class="fchev">▼</span></div>
-      <div class="faq-a">Yes! Spinning the wheel is completely free. You only need to pay if the prize delivery requires it AND it's confirmed by the page admin — we'll never charge you upfront.</div>
-      <div class="faq-q" onclick="toggleFaq(this)">How do I claim my prize? <span class="fchev">▼</span></div>
-      <div class="faq-a">After you win, click the <strong>"Claim via Messenger"</strong> button. A pre-filled message opens in Facebook Messenger. Add your full name, phone number, and delivery address — then send it to our team.</div>
-      <div class="faq-q" onclick="toggleFaq(this)">How long does delivery take? <span class="fchev">▼</span></div>
-      <div class="faq-a">After verification, delivery typically takes 5–10 business days depending on your location. Our team will keep you updated via Messenger.</div>
-      <div class="faq-q" onclick="toggleFaq(this)">My spin count didn't reset — help! <span class="fchev">▼</span></div>
-      <div class="faq-a">Spin counts are stored in your browser. Try clearing your browser's cookies/local storage, or contact us via Messenger and we'll reset it for you manually.</div>
-      <div class="faq-q" onclick="toggleFaq(this)">Can I spin on multiple devices? <span class="fchev">▼</span></div>
-      <div class="faq-a">Spin limits are stored per device/browser. Using multiple devices doesn't stack your wins — only one prize per person per day is honoured during verification.</div>
-    </div>
+    <div class="faq-q" onclick="toggleFaq(this)">How many spins do I get? <span class="fchev">▼</span></div>
+    <div class="faq-a">You get <strong>1 spin per session</strong> and can return up to <strong>3 times every 4 hours</strong>. The countdown timer shows exactly when your next spin unlocks.</div>
+    <div class="faq-q" onclick="toggleFaq(this)">What can I win? <span class="fchev">▼</span></div>
+    <div class="faq-a">Prizes include iPhone 15 Pro Max, iPhone 16, iPhone 17 Pro Max, iPad, Samsung Tablet, MacBook Pro, HP Laptop, Dell Laptop, and a <strong>$3,000 Cash Prize</strong>. There's also a "Try Again" — keep spinning!</div>
+    <div class="faq-q" onclick="toggleFaq(this)">Is this free? <span class="fchev">▼</span></div>
+    <div class="faq-a">Yes! Spinning is 100% free. You only pay for delivery if required AND confirmed by the page admin — never upfront.</div>
+    <div class="faq-q" onclick="toggleFaq(this)">How do I claim? <span class="fchev">▼</span></div>
+    <div class="faq-a">After winning, tap <strong>"Claim via Messenger"</strong>. A pre-filled message opens — add your name, phone &amp; address, then send.</div>
+    <div class="faq-q" onclick="toggleFaq(this)">How long does delivery take? <span class="fchev">▼</span></div>
+    <div class="faq-a">After verification, delivery takes 5–10 business days. You'll be updated via Messenger throughout.</div>
+    <div class="faq-q" onclick="toggleFaq(this)">Countdown isn't resetting — help! <span class="fchev">▼</span></div>
+    <div class="faq-a">The countdown is stored in your browser. Try clearing local storage, or contact us on Messenger and we'll reset it manually.</div>
   </div>
-
   <div class="card">
     <div class="card-icon">💬</div>
     <h3>Contact Us</h3>
-    <p style="margin-bottom:6px">Have a question not answered above? Reach out directly — we respond within 24 hours.</p>
-    <a class="contact-btn" href="https://m.me/FreeIphonesandTablets" target="_blank" rel="noopener noreferrer">
-      💬 Message Us on Messenger
-    </a>
+    <p>Questions not answered above? We reply within 24 hours.</p>
+    <a class="contact-btn" href="https://m.me/FreeIphonesandTablets" target="_blank" rel="noopener noreferrer">💬 Message on Messenger</a>
   </div>
-
   <div class="card">
-    <div class="card-icon">🔔</div>
+    <div class="card-icon">🏆</div>
     <h3>Tips for Winners</h3>
     <ul>
       <li>Screenshot your winning result before claiming.</li>
-      <li>Make sure your Messenger account name matches your real name for faster verification.</li>
-      <li>Double-check your address before sending — mistakes delay delivery.</li>
-      <li>If you don't hear back within 48 hours, follow up on Messenger with your order details.</li>
+      <li>Your Messenger name should match your real name for faster verification.</li>
+      <li>Double-check your address before sending.</li>
+      <li>No reply within 48h? Follow up on Messenger with your original message.</li>
+      <li>Share your win — it inspires others and helps spread the giveaway!</li>
     </ul>
   </div>
 </div>
 
-<!-- ══════════════ ABOUT PAGE ══════════════ -->
+<!-- ABOUT PAGE -->
 <div class="page" id="page-about">
-  <h2 class="inner-page-title">About</h2>
-  <p class="inner-page-sub">Learn more about the SpinWin Giveaway.</p>
-
+  <h2 class="inner-title">About SpinWin</h2>
+  <p class="inner-sub">The free spin-to-win giveaway — real prizes, zero cost.</p>
   <div class="card">
     <div class="card-icon">🎯</div>
     <h3>Our Mission</h3>
-    <p>SpinWin was created to bring joy and excitement to people who deserve a little extra luck. We believe everyone should have a chance to win amazing tech prizes without spending a dime. Our giveaway wheel is 100% free to play and every spin is guaranteed to win a real prize.</p>
+    <p>SpinWin was built to give everyone a real shot at winning amazing tech prizes and cash — completely free. Every spin is server-randomized, every prize is real, and every winner is verified personally by our team.</p>
   </div>
-
   <div class="card">
     <div class="card-icon">📊</div>
     <h3>By the Numbers</h3>
     <div class="stat-grid">
-      <div class="stat-card"><div class="stat-num">11</div><div class="stat-lbl">Prizes</div></div>
-      <div class="stat-card"><div class="stat-num">3</div><div class="stat-lbl">Daily Spins</div></div>
-      <div class="stat-card"><div class="stat-num">100%</div><div class="stat-lbl">Win Rate</div></div>
+      <div class="stat-card"><div class="stat-num">13</div><div class="stat-lbl">Prizes</div></div>
+      <div class="stat-card"><div class="stat-num">3×/4h</div><div class="stat-lbl">Spins</div></div>
+      <div class="stat-card"><div class="stat-num">$3K</div><div class="stat-lbl">Top Cash</div></div>
     </div>
   </div>
-
   <div class="card">
     <div class="card-icon">🎁</div>
-    <h3>Prize Catalogue</h3>
+    <h3>Full Prize List</h3>
     <ul>
-      <li>iPhone 15 Pro Max</li>
-      <li>iPhone 16</li>
-      <li>iPhone 17 Pro Max</li>
-      <li>iPad (2 variants)</li>
-      <li>Samsung Galaxy Tablet</li>
-      <li>MacBook Pro</li>
-      <li>HP Laptop</li>
-      <li>Dell Laptop</li>
+      <li>iPhone 15 Pro Max (×2 odds)</li><li>iPhone 17 Pro Max (×2 odds)</li>
+      <li>iPhone 16</li><li>iPad (×2 odds)</li><li>Samsung Galaxy Tablet</li>
+      <li>MacBook Pro</li><li>HP Laptop</li><li>Dell Laptop</li>
+      <li>$3,000 Cash Prize 💰</li><li>Try Again 🔄</li>
     </ul>
   </div>
-
   <div class="card">
     <div class="card-icon">⚖️</div>
     <h3>Legal &amp; Fairness</h3>
-    <p>This promotion is not sponsored, endorsed, or administered by Meta/Facebook. Open to US residents 18+. Prize distribution is fully random using server-side selection. Void where prohibited by law. By participating you agree to our terms and allow us to contact you via Messenger for delivery coordination.</p>
+    <p>Not sponsored or administered by Meta/Facebook. Open to US residents 18+. Prize selection is fully server-randomized on every spin. Void where prohibited. By participating you agree to Messenger contact for delivery coordination.</p>
   </div>
 </div>
 
-<!-- AUDIO -->
 <audio id="spinSound" src="/spin.mp3" preload="auto"></audio>
 <audio id="winSound"  src="/win.mp3"  preload="auto"></audio>
 
 <script>
-/* ═══════════════════════════════
-   PAGE NAVIGATION
-═══════════════════════════════ */
-function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  if (btn) btn.classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-/* ═══════════════════════════════
-   ACCORDION HELPERS
-═══════════════════════════════ */
-function toggleHow() {
-  const body = document.getElementById('howBody');
-  const chev = document.getElementById('howChev');
-  body.classList.toggle('open');
-  chev.textContent = body.classList.contains('open') ? '▲' : '▼';
-}
-function toggleFaq(el) {
-  const ans  = el.nextElementSibling;
-  const chev = el.querySelector('.fchev');
-  const open = ans.classList.contains('open');
-  // close all
-  document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
-  document.querySelectorAll('.fchev').forEach(c => c.textContent = '▼');
-  if (!open) { ans.classList.add('open'); chev.textContent = '▲'; }
-}
-
-/* ═══════════════════════════════
-   WHEEL CONFIG
-═══════════════════════════════ */
+/* ── PRIZES ── */
 const PRIZES = [
-  { name:"iPhone 15 Pro Max", emoji:"📱", color:"#e74c3c" },
-  { name:"iPhone 15 Pro Max", emoji:"📱", color:"#e67e22" },
-  { name:"iPhone 17 Pro Max", emoji:"📱", color:"#f1c40f" },
-  { name:"iPhone 17 Pro Max", emoji:"📱", color:"#2ecc71" },
-  { name:"iPhone 16",         emoji:"📱", color:"#1abc9c" },
-  { name:"Samsung Tablet",    emoji:"📟", color:"#3498db" },
-  { name:"iPad",              emoji:"🖥️", color:"#9b59b6" },
-  { name:"iPad",              emoji:"🖥️", color:"#e91e63" },
-  { name:"MacBook Pro",       emoji:"💻", color:"#ff5722" },
-  { name:"HP Laptop",         emoji:"💻", color:"#00bcd4" },
-  { name:"Dell Laptop",       emoji:"💻", color:"#8bc34a" },
+  {name:"iPhone 15 Pro Max",emoji:"📱",color:"#e74c3c",type:"win"},
+  {name:"iPhone 15 Pro Max",emoji:"📱",color:"#e67e22",type:"win"},
+  {name:"iPhone 17 Pro Max",emoji:"📱",color:"#f1c40f",type:"win"},
+  {name:"iPhone 17 Pro Max",emoji:"📱",color:"#2ecc71",type:"win"},
+  {name:"iPhone 16",        emoji:"📱",color:"#1abc9c",type:"win"},
+  {name:"Samsung Tablet",   emoji:"📟",color:"#3498db",type:"win"},
+  {name:"iPad",             emoji:"🖥️",color:"#9b59b6",type:"win"},
+  {name:"iPad",             emoji:"🖥️",color:"#e91e63",type:"win"},
+  {name:"MacBook Pro",      emoji:"💻",color:"#ff5722",type:"win"},
+  {name:"HP Laptop",        emoji:"💻",color:"#00bcd4",type:"win"},
+  {name:"Dell Laptop",      emoji:"💻",color:"#8bc34a",type:"win"},
+  {name:"$3,000 Cash",      emoji:"💰",color:"#ffd700",type:"cash"},
+  {name:"Try Again",        emoji:"🔄",color:"#444460",type:"tryagain"},
 ];
-const MAX_SPINS   = 3;
-const STORAGE_KEY = 'spinwin_v4';
 
-let spinsUsed = parseInt(localStorage.getItem(STORAGE_KEY)) || 0;
-let totalRot  = 0;
-let isSpinning = false;
+/* ── STATE ── */
+const SK = 'spinwin_v5';
+const MAX_SPINS = 3;
+const COOLDOWN  = 4 * 60 * 60 * 1000;
 
-/* ═══════════════════════════════
-   DRAW WHEEL CANVAS  (segments + emojis only, no text)
-═══════════════════════════════ */
-function drawWheel(rotDeg) {
-  const canvas  = document.getElementById('wheelCanvas');
-  const size    = canvas.offsetWidth || 360;
-  canvas.width  = canvas.height = size;
-  const ctx     = canvas.getContext('2d');
-  const cx = cy = size / 2;
-  const n       = PRIZES.length;
-  const slice   = (2 * Math.PI) / n;
-  const r       = size / 2 - 3;
-  const rotRad  = rotDeg * Math.PI / 180;
+function loadState(){try{return JSON.parse(localStorage.getItem(SK))||{};}catch(e){return{};}}
+function saveState(s){localStorage.setItem(SK,JSON.stringify(s));}
+let state = loadState();
+if(!state.spinsUsed)   state.spinsUsed=0;
+if(!state.history)     state.history=[];
+if(!state.sessionStart)state.sessionStart=null;
 
-  ctx.clearRect(0, 0, size, size);
+let totalRot=0, isSpinning=false, soundOn=true, cdInterval=null;
 
-  for (let i = 0; i < n; i++) {
-    const start = rotRad + i * slice - Math.PI / 2;
-    const end   = start + slice;
+/* ── COUNTDOWN ── */
+function msLeft(){if(!state.sessionStart)return 0;return Math.max(0,COOLDOWN-(Date.now()-state.sessionStart));}
+function fmt(ms){const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;
+  return`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;}
+function checkReset(){if(state.sessionStart&&msLeft()===0){state.spinsUsed=0;state.sessionStart=null;saveState(state);}}
+function startCountdown(){
+  clearInterval(cdInterval);
+  const bar=document.getElementById('countdownBar'),timer=document.getElementById('cdTimer');
+  bar.classList.add('visible');
+  cdInterval=setInterval(()=>{
+    const ms=msLeft(); timer.textContent=fmt(ms);
+    if(ms===0){clearInterval(cdInterval);bar.classList.remove('visible');
+      state.spinsUsed=0;state.sessionStart=null;saveState(state);updateUI();}
+  },1000);
+  timer.textContent=fmt(msLeft());
+}
 
-    // filled segment
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, end);
-    ctx.closePath();
-    ctx.fillStyle   = PRIZES[i].color;
-    ctx.fill();
-
-    // subtle segment divider
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, end);
-    ctx.closePath();
-    ctx.strokeStyle = 'rgba(0,0,0,0.25)';
-    ctx.lineWidth   = 1.5;
-    ctx.stroke();
-
-    // emoji in the middle of segment
-    const mid  = start + slice / 2;
-    const emoR = r * 0.6;
-    ctx.save();
-    ctx.translate(cx + emoR * Math.cos(mid), cy + emoR * Math.sin(mid));
-    ctx.rotate(mid + Math.PI / 2);
-    ctx.font      = `${Math.max(14, size * 0.052)}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(PRIZES[i].emoji, 0, 0);
-    ctx.restore();
+/* ── DRAW WHEEL ── */
+function drawWheel(rotDeg){
+  const canvas=document.getElementById('wheelCanvas');
+  const size=canvas.offsetWidth||340; canvas.width=canvas.height=size;
+  const ctx=canvas.getContext('2d'), cx=size/2, cy=size/2;
+  const n=PRIZES.length, slice=(2*Math.PI)/n, r=size/2-3, rotR=rotDeg*Math.PI/180;
+  ctx.clearRect(0,0,size,size);
+  for(let i=0;i<n;i++){
+    const start=rotR+i*slice-Math.PI/2, end=start+slice;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();
+    ctx.fillStyle=PRIZES[i].color;ctx.fill();
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();
+    ctx.strokeStyle='rgba(0,0,0,0.28)';ctx.lineWidth=1.5;ctx.stroke();
+    const mid=start+slice/2, emoR=r*0.60;
+    ctx.save();ctx.translate(cx+emoR*Math.cos(mid),cy+emoR*Math.sin(mid));
+    ctx.rotate(mid+Math.PI/2);ctx.font=`${Math.max(12,size*0.048)}px serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(PRIZES[i].emoji,0,0);ctx.restore();
   }
 }
 drawWheel(0);
 
-/* ═══════════════════════════════
-   PRIZE LEGEND
-═══════════════════════════════ */
-(function buildLegend() {
-  const grid = document.getElementById('legendGrid');
-  const seen = new Set();
-  PRIZES.forEach(p => {
-    if (seen.has(p.name)) return;
-    seen.add(p.name);
-    const item = document.createElement('div');
-    item.className = 'legend-item';
-    item.innerHTML = `<span class="legend-dot" style="background:${p.color}"></span>${p.emoji} ${p.name}`;
-    grid.appendChild(item);
-  });
+/* ── LEGEND ── */
+(function(){
+  const grid=document.getElementById('legendGrid'),seen=new Set();
+  PRIZES.forEach(p=>{if(seen.has(p.name))return;seen.add(p.name);
+    const el=document.createElement('div');el.className='legend-item';
+    el.innerHTML=`<span class="legend-dot" style="background:${p.color}"></span>${p.emoji} ${p.name}`;
+    grid.appendChild(el);});
 })();
 
-/* ═══════════════════════════════
-   SPIN DOTS
-═══════════════════════════════ */
-function renderDots() {
-  const wrap = document.getElementById('spinDots');
-  wrap.innerHTML = '';
-  for (let i = 0; i < MAX_SPINS; i++) {
-    const d = document.createElement('div');
-    d.className = 'sdot' + (i < spinsUsed ? ' used' : '');
-    wrap.appendChild(d);
-  }
+/* ── DOTS & UI ── */
+function renderDots(){
+  const w=document.getElementById('spinDots');w.innerHTML='';
+  for(let i=0;i<MAX_SPINS;i++){const d=document.createElement('div');d.className='sdot'+(i<state.spinsUsed?' used':'');w.appendChild(d);}
 }
-renderDots();
-
-function updateUI() {
-  const rem = MAX_SPINS - spinsUsed;
-  const btn = document.getElementById('spinBtn');
-  const noS = document.getElementById('noSpinsMsg');
-  if (rem <= 0) {
-    btn.textContent  = '😔 No Spins Left';
-    btn.disabled     = true;
-    noS.style.display = 'block';
-  } else {
-    btn.textContent  = '🎰 SPIN NOW!';
-    btn.disabled     = false;
-    noS.style.display = 'none';
-  }
+function updateUI(){
+  checkReset();
+  const rem=MAX_SPINS-state.spinsUsed, btn=document.getElementById('spinBtn'), noS=document.getElementById('noSpinsMsg');
   renderDots();
+  if(rem<=0){btn.textContent='⏳ Come Back Soon!';btn.disabled=true;noS.style.display='block';
+    if(state.sessionStart&&msLeft()>0)startCountdown();
+  }else{btn.textContent='🎰 SPIN NOW!';btn.disabled=false;noS.style.display='none';
+    document.getElementById('countdownBar').classList.remove('visible');clearInterval(cdInterval);}
 }
 updateUI();
+if(state.sessionStart&&msLeft()>0&&state.spinsUsed>=MAX_SPINS)startCountdown();
 
-/* ═══════════════════════════════
-   AUDIO
-═══════════════════════════════ */
-const spinAudio = document.getElementById('spinSound');
-const winAudio  = document.getElementById('winSound');
-spinAudio.volume = 0.7;
-winAudio.volume  = 0.9;
-
-// Unlock audio context on first interaction (critical for mobile)
-let audioUnlocked = false;
-function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  [spinAudio, winAudio].forEach(a => {
-    a.muted = false;
-    const p = a.play();
-    if (p) p.then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
-  });
+/* ── HISTORY ── */
+function timeAgo(ts){const d=Math.floor((Date.now()-ts)/1000);
+  if(d<60)return'Just now';if(d<3600)return`${Math.floor(d/60)}m ago`;
+  if(d<86400)return`${Math.floor(d/3600)}h ago`;return`${Math.floor(d/86400)}d ago`;}
+function renderHistory(){
+  const wrap=document.getElementById('spinHistory');
+  if(!state.history.length){wrap.innerHTML='<p style="font-size:.82em;color:var(--muted);text-align:center;padding:10px 0">No spins yet — spin the wheel!</p>';return;}
+  wrap.innerHTML='';
+  [...state.history].reverse().slice(0,5).forEach(item=>{
+    const p=PRIZES.find(x=>x.name===item.prize)||PRIZES[0];
+    const kind=p.type==='tryagain'?'try':p.type;
+    const el=document.createElement('div');el.className='history-item';
+    el.innerHTML=`<div class="hi-left"><span class="hi-emoji">${p.emoji}</span><div><div class="hi-name">${item.prize}</div><div class="hi-time">${timeAgo(item.ts)}</div></div></div><span class="hi-badge ${kind}">${kind==='try'?'Try Again':kind==='cash'?'💰 Cash':'🏆 Win'}</span>`;
+    wrap.appendChild(el);});
 }
-document.addEventListener('touchstart', unlockAudio, { once: true });
-document.addEventListener('click', unlockAudio, { once: true });
+renderHistory();
 
-/* Web Audio tick */
-let AudioCtx = null;
-function getCtx() {
-  if (!AudioCtx) {
-    try { AudioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
-  }
-  if (AudioCtx && AudioCtx.state === 'suspended') AudioCtx.resume();
-  return AudioCtx;
+/* ── LIVE STATS ── */
+let claimedBase=2847, onlineBase=142;
+setInterval(()=>{
+  claimedBase+=Math.random()<.3?1:0;
+  onlineBase+=Math.floor(Math.random()*7)-3;
+  onlineBase=Math.max(98,Math.min(260,onlineBase));
+  document.getElementById('statClaimed').textContent=claimedBase.toLocaleString();
+  document.getElementById('statOnline').textContent=onlineBase;
+},4200);
+
+/* ── TICKER ── */
+const FAKE_WINNERS=[
+  "🎉 James from Texas won an iPhone 15 Pro Max!",
+  "🏆 Sarah M. just claimed her MacBook Pro!",
+  "💰 Andre K. won the $3,000 Cash Prize!",
+  "🎁 Maria from Florida won an iPad!",
+  "📱 Tyler just claimed his iPhone 17 Pro Max!",
+  "🎉 Destiny W. won a Samsung Tablet!",
+  "💻 Kevin from Ohio won a Dell Laptop!",
+  "🏆 Jessica just claimed an iPhone 16!",
+  "🎁 Omar from NY won an HP Laptop!",
+  "💰 Brianna just won $3,000 Cash — incredible!",
+  "📱 Chris from LA won an iPhone 15 Pro Max!",
+  "🎉 Aisha M. just claimed her iPad!",
+  "💻 DeShawn from Atlanta won a MacBook Pro!",
+  "🏆 Lily from Seattle won an iPhone 17 Pro Max!",
+];
+function buildTicker(){
+  const track=document.getElementById('tickerTrack');
+  let items=[...FAKE_WINNERS];
+  state.history.filter(h=>{const p=PRIZES.find(x=>x.name===h.prize);return p&&p.type!=='tryagain';})
+    .forEach(h=>items.push(`🔥 Someone nearby just won ${h.prize}!`));
+  items=items.sort(()=>Math.random()-.5);
+  const full=[...items,...items];
+  track.innerHTML=full.map(t=>`<span class="ticker-item"><span class="ticker-dot"></span>${t}</span>`).join('');
 }
-function playTick() {
-  const ctx = getCtx();
-  if (!ctx) return;
-  try {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = 'triangle';
-    o.frequency.value = 700 + Math.random() * 120;
-    g.gain.setValueAtTime(0.1, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.06);
-    o.start(ctx.currentTime);
-    o.stop(ctx.currentTime + 0.07);
-  } catch(e) {}
+buildTicker();
+
+/* ── AUDIO ── */
+const spinAudio=document.getElementById('spinSound');
+const winAudio=document.getElementById('winSound');
+spinAudio.volume=0.65; winAudio.volume=0.85;
+let audioUnlocked=false;
+function unlockAudio(){
+  if(audioUnlocked)return; audioUnlocked=true;
+  [spinAudio,winAudio].forEach(a=>{a.muted=false;const p=a.play();if(p)p.then(()=>{a.pause();a.currentTime=0;}).catch(()=>{});});
 }
+document.addEventListener('touchstart',unlockAudio,{once:true});
+document.addEventListener('click',unlockAudio,{once:true});
 
-let tickHandle = null;
-function startTicks(duration) {
-  let elapsed = 0, iv = 70;
-  function next() {
-    if (elapsed >= duration) return;
-    playTick();
-    const p = elapsed / duration;
-    iv = 70 + p * p * 750;
-    elapsed += iv;
-    tickHandle = setTimeout(next, iv);
-  }
-  next();
-}
-function stopTicks() { clearTimeout(tickHandle); }
+document.getElementById('soundToggle').addEventListener('click',()=>{
+  soundOn=!soundOn; document.getElementById('soundToggle').textContent=soundOn?'🔊':'🔇';});
 
-/* ═══════════════════════════════
-   WIN FANFARE — Web Audio synth
-   Guaranteed to play: uses the same
-   AudioContext already unlocked by
-   the spin button click
-═══════════════════════════════ */
-function playWinFanfare() {
-  const ctx = getCtx();
-  if (!ctx) return;
+let AudioCtx=null;
+function getCtx(){
+  if(!AudioCtx)try{AudioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  if(AudioCtx&&AudioCtx.state==='suspended')AudioCtx.resume();return AudioCtx;}
+function playTick(){
+  if(!soundOn)return; const ctx=getCtx();if(!ctx)return;
+  try{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+    o.type='triangle';o.frequency.value=680+Math.random()*130;
+    g.gain.setValueAtTime(.09,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.065);
+    o.start();o.stop(ctx.currentTime+.07);}catch(e){}}
+let tickHandle=null;
+function startTicks(dur){let elapsed=0,iv=68;
+  function next(){if(elapsed>=dur)return;playTick();const p=elapsed/dur;iv=68+p*p*780;elapsed+=iv;tickHandle=setTimeout(next,iv);}next();}
+function stopTicks(){clearTimeout(tickHandle);}
 
-  // Victory arpeggio: C5 E5 G5 C6 then sparkle
-  const notes = [
-    { freq: 523.25, start: 0.0,  dur: 0.18 },
-    { freq: 659.25, start: 0.15, dur: 0.18 },
-    { freq: 783.99, start: 0.30, dur: 0.18 },
-    { freq: 1046.5, start: 0.45, dur: 0.50 },
-    { freq:  783.99,start: 0.50, dur: 0.18 },
-    { freq: 1318.5, start: 0.65, dur: 0.65 },
-  ];
+function playDrumRoll(dur){
+  if(!soundOn)return; const ctx=getCtx();if(!ctx)return;
+  let t=0,step=.12;
+  while(t<dur){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+    o.type='triangle';o.frequency.value=180+Math.random()*40;
+    const s=ctx.currentTime+t;g.gain.setValueAtTime(.08,s);g.gain.exponentialRampToValueAtTime(.0001,s+.08);
+    o.start(s);o.stop(s+.09);step=Math.max(.04,step*.92);t+=step;}}
 
-  notes.forEach(({ freq, start, dur }) => {
-    const now  = ctx.currentTime;
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0, now + start);
-    gain.gain.linearRampToValueAtTime(0.22, now + start + 0.03);
-    gain.gain.setValueAtTime(0.22, now + start + dur - 0.05);
-    gain.gain.linearRampToValueAtTime(0, now + start + dur);
-    osc.start(now + start);
-    osc.stop(now + start + dur + 0.05);
-  });
+function playWinFanfare(isCash){
+  if(!soundOn)return; const ctx=getCtx();if(!ctx)return;
+  const melody=isCash
+    ?[{f:659,s:0,d:.2},{f:783,s:.14,d:.2},{f:1046,s:.27,d:.2},{f:1318,s:.41,d:.55},{f:1568,s:.58,d:.7}]
+    :[{f:523,s:0,d:.18},{f:659,s:.13,d:.18},{f:783,s:.27,d:.18},{f:1046,s:.41,d:.5},{f:783,s:.47,d:.18},{f:1318,s:.60,d:.65}];
+  melody.forEach(({f,s,d})=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.value=f;const n=ctx.currentTime;
+    g.gain.setValueAtTime(0,n+s);g.gain.linearRampToValueAtTime(.2,n+s+.03);
+    g.gain.setValueAtTime(.2,n+s+d-.05);g.gain.linearRampToValueAtTime(0,n+s+d);
+    o.start(n+s);o.stop(n+s+d+.05);});
+  [2093,2637,3136].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.value=f;const t=.54+i*.1,n=ctx.currentTime;
+    g.gain.setValueAtTime(0,n+t);g.gain.linearRampToValueAtTime(.06,n+t+.02);g.gain.linearRampToValueAtTime(0,n+t+.15);
+    o.start(n+t);o.stop(n+t+.2);});}
 
-  // High shimmer sparkle
-  [2093, 2637, 3136].forEach((freq, i) => {
-    const now  = ctx.currentTime;
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const t = 0.55 + i * 0.1;
-    gain.gain.setValueAtTime(0, now + t);
-    gain.gain.linearRampToValueAtTime(0.07, now + t + 0.02);
-    gain.gain.linearRampToValueAtTime(0, now + t + 0.15);
-    osc.start(now + t);
-    osc.stop(now + t + 0.2);
-  });
-}
+/* ── CONFETTI ── */
+function fireworks(isCash){
+  const colors=isCash?['#ffd700','#fff','#ff9500','#ffec6e','#ffa500']:['#f5c842','#00e676','#4a9eff','#ff4081','#fff','#a855f7'];
+  confetti({particleCount:150,spread:95,startVelocity:50,origin:{y:.55},colors});
+  setTimeout(()=>confetti({particleCount:90,spread:75,origin:{y:.35},colors}),600);
+  setTimeout(()=>confetti({particleCount:70,spread:120,origin:{y:.45},colors}),1100);
+  if(isCash)setTimeout(()=>confetti({particleCount:120,spread:60,startVelocity:70,angle:90,origin:{y:.6},colors}),400);}
 
-/* ═══════════════════════════════
-   CONFETTI BURST
-═══════════════════════════════ */
-function fireworks() {
-  const colors = ['#f5c842','#00e676','#4a9eff','#ff4081','#fff','#a855f7'];
-  confetti({ particleCount:140, spread:90, startVelocity:48, origin:{y:.55}, colors });
-  setTimeout(() => confetti({ particleCount:80, spread:70, origin:{y:.35}, colors }), 600);
-  setTimeout(() => confetti({ particleCount:60, spread:120, origin:{y:.45}, colors }), 1100);
-}
+/* ── SHARE ── */
+let lastPrize='';
+function shareWin(){
+  const text=`🏆 I just won ${lastPrize} on SpinWin! 🎡 Try your luck — every spin has a chance! 🔥`;
+  if(navigator.share){navigator.share({title:'I won on SpinWin!',text,url:window.location.href}).catch(()=>{});}
+  else{window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(text)}`,'_blank');}}
 
-/* ═══════════════════════════════
-   SPIN LOGIC
-═══════════════════════════════ */
-document.getElementById('spinBtn').addEventListener('click', async () => {
-  if (isSpinning || spinsUsed >= MAX_SPINS) return;
-  unlockAudio(); // ensure unlocked on click
+/* ── HAPTIC ── */
+function haptic(p){if(navigator.vibrate)navigator.vibrate(p);}
 
-  isSpinning = true;
-  const btn    = document.getElementById('spinBtn');
-  const result = document.getElementById('result');
-  btn.disabled = true;
-  document.getElementById('claimSection').style.display = 'none';
-  result.className = 'spinning';
-  result.innerHTML = '<span class="r-hint">🎰 Spinning…</span>';
-  document.getElementById('wheelWrap').className = 'wheel-section';
-
-  // play spin sound
-  spinAudio.currentTime = 0;
-  spinAudio.play().catch(() => {});
-
-  // tick sounds
+/* ── SPIN ── */
+document.getElementById('spinBtn').addEventListener('click',async()=>{
+  checkReset();
+  if(isSpinning||state.spinsUsed>=MAX_SPINS)return;
+  unlockAudio(); isSpinning=true;
+  const btn=document.getElementById('spinBtn'),result=document.getElementById('result');
+  btn.disabled=true;
+  document.getElementById('claimSection').style.display='none';
+  document.getElementById('tryAgainSection').style.display='none';
+  result.className='spinning';result.innerHTML='<span class="r-hint">🎰 Spinning…</span>';
+  document.getElementById('wheelWrap').className='wheel-section';
+  haptic([20]);
+  if(soundOn){spinAudio.currentTime=0;spinAudio.play().catch(()=>{});}
   startTicks(6100);
 
-  // fetch prize from server
   let data;
-  try {
-    const res = await fetch('/spin', { method:'POST' });
-    data = await res.json();
-  } catch(e) {
-    result.className = '';
-    result.innerHTML = '<span class="r-hint">Network error — please try again.</span>';
-    isSpinning = false; updateUI(); stopTicks(); spinAudio.pause();
-    return;
-  }
+  try{const res=await fetch('/spin',{method:'POST'});data=await res.json();}
+  catch(e){result.className='';result.innerHTML='<span class="r-hint">Network error — try again.</span>';
+    isSpinning=false;updateUI();stopTicks();spinAudio.pause();return;}
+  if(!data.success){result.className='';result.innerHTML='<span class="r-hint">Something went wrong — try again.</span>';
+    isSpinning=false;updateUI();stopTicks();spinAudio.pause();return;}
 
-  if (!data.success) {
-    result.className = '';
-    result.innerHTML = '<span class="r-hint">Something went wrong — try again.</span>';
-    isSpinning = false; updateUI(); stopTicks(); spinAudio.pause();
-    return;
-  }
+  const prizeIdx=PRIZES.findIndex(p=>p.name===data.prize);
+  const deg=360/PRIZES.length;
+  const extra=(Math.floor(Math.random()*4)+6)*360;
+  const stop=360-(prizeIdx*deg+deg/2);
+  totalRot+=extra+stop;
+  const wheel=document.getElementById('wheel');
+  wheel.style.transition='transform 6s cubic-bezier(0.15,0.65,0.1,1)';
+  wheel.style.transform=`rotate(${totalRot}deg)`;
+  drawWheel(totalRot%360);
 
-  // Calculate stop angle
-  const prizeIdx  = PRIZES.findIndex(p => p.name === data.prize);
-  const deg       = 360 / PRIZES.length;
-  const extraSpins = (Math.floor(Math.random() * 4) + 6) * 360;
-  const stopAngle  = 360 - (prizeIdx * deg + deg / 2);
-  totalRot        += extraSpins + stopAngle;
+  setTimeout(()=>{
+    stopTicks(); spinAudio.pause(); spinAudio.currentTime=0;
+    playDrumRoll(1.2);
+    setTimeout(()=>{
+      const prize=PRIZES[prizeIdx]; lastPrize=prize.name; isSpinning=false;
+      state.spinsUsed++;
+      if(!state.sessionStart)state.sessionStart=Date.now();
+      state.history.push({prize:prize.name,ts:Date.now()});
+      if(state.history.length>20)state.history=state.history.slice(-20);
+      saveState(state); updateUI(); renderHistory(); buildTicker();
 
-  const wheel = document.getElementById('wheel');
-  wheel.style.transition = 'transform 6s cubic-bezier(0.15,0.65,0.1,1)';
-  wheel.style.transform  = `rotate(${totalRot}deg)`;
-  drawWheel(totalRot % 360);
+      const prizeClass=prize.type==='cash'?'cash':prize.type==='tryagain'?'tryagain':'';
+      result.className='';
+      result.innerHTML=`<span class="r-hint">${prize.type==='tryagain'?'😅 Better luck next time!':'🏆 Congratulations!'}</span><span class="r-prize ${prizeClass} prize-reveal">${prize.emoji} ${prize.name}</span>`;
+      haptic(prize.type==='tryagain'?[30]:[50,30,50,30,100]);
 
-  // After spin finishes
-  setTimeout(() => {
-    stopTicks();
-    spinAudio.pause();
-    spinAudio.currentTime = 0;
-
-    isSpinning = false;
-    spinsUsed++;
-    localStorage.setItem(STORAGE_KEY, spinsUsed);
-    updateUI();
-
-    // Show result
-    const prize = PRIZES[prizeIdx];
-    result.className = '';
-    result.innerHTML = `
-      <span class="r-hint">🏆 Congratulations!</span>
-      <span class="r-prize">${prize.emoji} ${prize.name}</span>
-    `;
-
-    // Win animation on wheel
-    document.getElementById('wheelWrap').className = 'wheel-section wheel-win';
-
-    // Play win sound — Web Audio API fanfare (works on all browsers/mobile, no autoplay block)
-    playWinFanfare();
-
-    // Also attempt the mp3 as a bonus layer
-    try {
-      winAudio.currentTime = 0;
-      winAudio.play().catch(() => {});
-    } catch(e) {}
-
-    // Confetti
-    fireworks();
-
-    // Claim section
-    const claimSection   = document.getElementById('claimSection');
-    const claimPrizeBadge = document.getElementById('claimPrizeBadge');
-    const claimLink       = document.getElementById('claimLink');
-    claimPrizeBadge.textContent = `${prize.emoji} ${prize.name}`;
-    const msg = encodeURIComponent(`🏆 I won ${prize.name} on the SpinWin wheel! My delivery details: `);
-    claimLink.href = `https://m.me/FreeIphonesandTablets?text=${msg}`;
-    claimSection.style.display = 'block';
-
-    // Reset wheel ring after animation
-    setTimeout(() => { document.getElementById('wheelWrap').className = 'wheel-section'; }, 3500);
-  }, 6200);
+      if(prize.type==='tryagain'){
+        document.getElementById('tryAgainSection').style.display='block';
+        document.getElementById('wheelWrap').className='wheel-section';
+        const ctx=getCtx();
+        if(ctx&&soundOn){const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);
+          o.type='sine';o.frequency.value=300;g.gain.setValueAtTime(.1,ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.7);o.start();o.stop(ctx.currentTime+.75);}
+      }else{
+        const isCash=prize.type==='cash';
+        document.getElementById('wheelWrap').className=`wheel-section ${isCash?'wheel-cash':'wheel-win'}`;
+        playWinFanfare(isCash);
+        try{winAudio.currentTime=0;winAudio.play().catch(()=>{});}catch(e){}
+        fireworks(isCash);
+        const badge=document.getElementById('claimBadge');
+        badge.textContent=`${prize.emoji} ${prize.name}`;
+        badge.className=`claim-prize-badge${isCash?' cash':''}`;
+        const msg=encodeURIComponent(`🏆 I won ${prize.name} on SpinWin! My delivery details: `);
+        document.getElementById('claimLink').href=`https://m.me/FreeIphonesandTablets?text=${msg}`;
+        document.getElementById('claimSection').style.display='block';
+        setTimeout(()=>{document.getElementById('wheelWrap').className='wheel-section';},3500);
+      }
+    },1300);
+  },6200);
 });
+
+/* ── ACCORDIONS ── */
+function toggleHow(){const b=document.getElementById('howBody'),c=document.getElementById('howChev');
+  b.classList.toggle('open');c.textContent=b.classList.contains('open')?'▲':'▼';}
+function toggleFaq(el){const a=el.nextElementSibling,c=el.querySelector('.fchev'),open=a.classList.contains('open');
+  document.querySelectorAll('.faq-a').forEach(x=>x.classList.remove('open'));
+  document.querySelectorAll('.fchev').forEach(x=>x.textContent='▼');
+  if(!open){a.classList.add('open');c.textContent='▲';}}
+
+/* ── NAV ── */
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});}
 </script>
 </body>
 </html>
