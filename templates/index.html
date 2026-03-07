@@ -169,11 +169,10 @@
     .wheel-glow{position:absolute;inset:-12px;border-radius:50%;
       background:conic-gradient(#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6,#e91e63,#ff5722,#00bcd4,#8bc34a,#ffd700,#556,#223,#e74c3c);
       opacity:.28;filter:blur(14px);z-index:0;animation:rotateSlow 14s linear infinite}
-    #wheel{position:relative;z-index:1;width:100%;height:100%;border-radius:50%;
+    #wheelCanvas{position:relative;z-index:1;width:100%;height:100%;border-radius:50%;
       border:5px solid var(--gold);
       box-shadow:0 0 26px rgba(245,200,66,.38),inset 0 0 40px rgba(0,0,0,.45);
-      transition:transform 6s cubic-bezier(0.15,0.65,0.1,1);will-change:transform}
-    #wheelCanvas{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;z-index:2;pointer-events:none}
+      display:block}
     .wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
       width:46px;height:46px;border-radius:50%;
       background:radial-gradient(circle at 35% 35%,#fff 0%,var(--gold) 55%,#a07000 100%);
@@ -357,16 +356,34 @@
     .stat-num{font-family:'Bebas Neue',sans-serif;font-size:1.8em;letter-spacing:1px;color:var(--gold)}
     .stat-lbl{font-size:.68em;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 
+    /* ── PAGE MODALS (Support / About) ── */
+    .page-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;
+      display:flex;align-items:flex-start;justify-content:center;padding:16px;
+      overflow-y:auto;animation:fadeIn .22s ease both}
+    .page-modal-overlay.hidden{display:none}
+    .page-modal-box{background:linear-gradient(160deg,var(--surface),var(--surface2));
+      border:1px solid var(--border);border-radius:22px;
+      width:100%;max-width:560px;margin:auto;padding:24px 18px 36px;
+      position:relative;animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both}
+    .page-modal-close{position:absolute;top:14px;right:16px;background:none;border:none;
+      color:var(--muted);font-size:1.4em;cursor:pointer;line-height:1;padding:4px}
+    .page-modal-close:hover{color:var(--text)}
+
+    /* ── CANVAS WIN RING ── */
+    @keyframes canvasWinRing{0%,100%{box-shadow:0 0 26px rgba(245,200,66,.38);border-color:var(--gold)}
+      50%{box-shadow:0 0 58px rgba(0,230,118,.8);border-color:var(--green)}}
+    @keyframes canvasCashRing{0%,100%{box-shadow:0 0 26px rgba(245,200,66,.38);border-color:var(--gold)}
+      50%{box-shadow:0 0 70px rgba(255,215,0,.95);border-color:#fff}}
+    .wheel-win  #wheelCanvas{animation:canvasWinRing  .85s ease-in-out 4}
+    .wheel-cash #wheelCanvas{animation:canvasCashRing .7s  ease-in-out 5}
+
     /* ── KEYFRAMES ── */
     @keyframes fadeDown{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
     @keyframes popIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
     @keyframes pulse{from{opacity:.6}to{opacity:1}}
     @keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    @keyframes winRing{0%,100%{box-shadow:0 0 26px rgba(245,200,66,.38),inset 0 0 40px rgba(0,0,0,.45);border-color:var(--gold)}50%{box-shadow:0 0 58px rgba(0,230,118,.72),inset 0 0 40px rgba(0,0,0,.45);border-color:var(--green)}}
-    @keyframes cashRing{0%,100%{box-shadow:0 0 26px rgba(245,200,66,.38),inset 0 0 40px rgba(0,0,0,.45);border-color:var(--gold)}50%{box-shadow:0 0 70px rgba(255,215,0,.95),inset 0 0 40px rgba(0,0,0,.45);border-color:#fff}}
-    .wheel-win  #wheel{animation:winRing  .85s ease-in-out 4}
-    .wheel-cash #wheel{animation:cashRing .7s  ease-in-out 5}
+
 
     @media(max-width:480px){
       #spinBtn{font-size:1.55em;padding:13px 44px}
@@ -418,8 +435,8 @@
   <div class="nav-right">
     <button id="soundToggle" title="Toggle sound">🔊</button>
     <button class="nav-btn active" onclick="showPage('game',this)">🎰 Play</button>
-    <button class="nav-btn" onclick="showPage('support',this)">💬 Support</button>
-    <button class="nav-btn" onclick="showPage('about',this)">ℹ️ About</button>
+    <button class="nav-btn" onclick="openPageModal('support')">💬 Support</button>
+    <button class="nav-btn" onclick="openPageModal('about')">ℹ️ About</button>
   </div>
 </nav>
 
@@ -478,10 +495,8 @@
 
   <div class="wheel-section" id="wheelWrap">
     <div class="wheel-glow"></div>
-    <div id="wheel">
-      <canvas id="wheelCanvas"></canvas>
-      <div class="wheel-hub"></div>
-    </div>
+    <canvas id="wheelCanvas"></canvas>
+    <div class="wheel-hub"></div>
     <div class="pointer"><div class="ptr-cap"></div><div class="ptr-body"></div></div>
   </div>
 
@@ -559,98 +574,104 @@
     Void where prohibited. Winners contacted via Messenger for verification.</p>
 </div>
 
-<!-- SUPPORT PAGE -->
-<div class="page" id="page-support">
-  <h2 class="inner-title">Support</h2>
-  <p class="inner-sub">We're here to help — reach us any time.</p>
-  <div class="card">
-    <div class="card-icon">❓</div>
-    <h3>Frequently Asked Questions</h3>
-    <div class="faq-q" onclick="toggleFaq(this)">How many spins do I get? <span class="fchev">▼</span></div>
-    <div class="faq-a">You get <strong>1 free spin every 4 hours</strong>. The countdown timer on the game page shows exactly when your next spin unlocks.</div>
-    <div class="faq-q" onclick="toggleFaq(this)">What is the daily prize pool? <span class="fchev">▼</span></div>
-    <div class="faq-a">Only <strong>30 prizes are given out per day</strong>. Once all 30 are claimed the wheel locks until midnight when the pool resets. This keeps the giveaway fair and sustainable for everyone.</div>
-    <div class="faq-q" onclick="toggleFaq(this)">What can I win? <span class="fchev">▼</span></div>
-    <div class="faq-a">7 real prizes: iPhone 17 Pro Max, MacBook Pro, iPad Pro, Samsung Galaxy Tab S9, HP Laptop, $500 Gift Card, and the <strong>$3,000 Cash jackpot</strong>. There are also 6 "Try Again" segments — keep spinning!</div>
-    <div class="faq-q" onclick="toggleFaq(this)">How does the $3,000 jackpot work? <span class="fchev">▼</span></div>
-    <div class="faq-a">The cash jackpot triggers at a global spin milestone shown by the progress bar. If you land on it before the milestone, you'll win an iPhone 17 Pro Max instead — still an amazing prize!</div>
-    <div class="faq-q" onclick="toggleFaq(this)">How do I claim my prize? <span class="fchev">▼</span></div>
-    <div class="faq-a">After winning, tap <strong>"Claim via Messenger"</strong>. Your prize is reserved for 24 hours. Send your name, phone number and delivery address in Messenger and our team will verify and arrange shipping.</div>
-    <div class="faq-q" onclick="toggleFaq(this)">Is this really free? <span class="fchev">▼</span></div>
-    <div class="faq-a">Yes — spinning is 100% free. You only pay for delivery if required AND confirmed in writing by the page admin before you agree. Never pay anything upfront without written confirmation.</div>
-    <div class="faq-q" onclick="toggleFaq(this)">My countdown isn't updating — what do I do? <span class="fchev">▼</span></div>
-    <div class="faq-a">Try refreshing the page or clearing your browser cache. If the issue persists, contact us on WhatsApp or Messenger and we'll sort it out manually within 24 hours.</div>
-  </div>
-  <div class="card">
-    <div class="card-icon">💬</div>
-    <h3>Contact Us</h3>
-    <p>We reply fast — usually within a few hours. Reach us on WhatsApp for the quickest response.</p>
-    <div class="contact-btns">
-      <a class="contact-btn whatsapp" href="https://wa.me/17572956292" target="_blank" rel="noopener noreferrer">📱 WhatsApp Us</a>
-      <a class="contact-btn messenger" href="https://m.me/FreeIphonesandTablets" target="_blank" rel="noopener noreferrer">💬 Messenger</a>
+<!-- SUPPORT MODAL -->
+<div class="page-modal-overlay hidden" id="modal-support">
+  <div class="page-modal-box">
+    <button class="page-modal-close" onclick="closePageModal('support')">✕</button>
+    <h2 class="inner-title">Support</h2>
+    <p class="inner-sub">We're here to help — reach us any time.</p>
+    <div class="card">
+      <div class="card-icon">❓</div>
+      <h3>Frequently Asked Questions</h3>
+      <div class="faq-q" onclick="toggleFaq(this)">How many spins do I get? <span class="fchev">▼</span></div>
+      <div class="faq-a">You get <strong>1 free spin every 4 hours</strong>. The countdown timer on the game page shows exactly when your next spin unlocks.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">What is the daily prize pool? <span class="fchev">▼</span></div>
+      <div class="faq-a">Only <strong>30 prizes are given out per day</strong>. Once all 30 are claimed the wheel locks until midnight when the pool resets. This keeps the giveaway fair and sustainable for everyone.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">What can I win? <span class="fchev">▼</span></div>
+      <div class="faq-a">7 real prizes: iPhone 17 Pro Max, MacBook Pro, iPad Pro, Samsung Galaxy Tab S9, HP Laptop, $500 Gift Card, and the <strong>$3,000 Cash jackpot</strong>. There are also 6 "Try Again" segments — keep spinning!</div>
+      <div class="faq-q" onclick="toggleFaq(this)">How does the $3,000 jackpot work? <span class="fchev">▼</span></div>
+      <div class="faq-a">The cash jackpot triggers at a global spin milestone shown by the progress bar. If you land on it before the milestone, you'll win an iPhone 17 Pro Max instead — still an amazing prize!</div>
+      <div class="faq-q" onclick="toggleFaq(this)">How do I claim my prize? <span class="fchev">▼</span></div>
+      <div class="faq-a">After winning, tap <strong>"Claim via Messenger"</strong>. Your prize is reserved for 24 hours. Send your name, phone number and delivery address in Messenger and our team will verify and arrange shipping.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">Is this really free? <span class="fchev">▼</span></div>
+      <div class="faq-a">Yes — spinning is 100% free. You only pay for delivery if required AND confirmed in writing by the page admin before you agree. Never pay anything upfront without written confirmation.</div>
+      <div class="faq-q" onclick="toggleFaq(this)">My countdown isn't updating — what do I do? <span class="fchev">▼</span></div>
+      <div class="faq-a">Try refreshing the page or clearing your browser cache. If the issue persists, contact us on WhatsApp or Messenger and we'll sort it out manually within 24 hours.</div>
     </div>
-  </div>
-  <div class="card">
-    <div class="card-icon">🏆</div>
-    <h3>Tips for Winners</h3>
-    <ul>
-      <li>Screenshot your winning result immediately before doing anything else.</li>
-      <li>Your Messenger name should match your real name for faster verification.</li>
-      <li>Double-check your delivery address before sending it to us.</li>
-      <li>Your prize is reserved for 24 hours — claim it quickly!</li>
-      <li>No reply within 48 hours? Send a follow-up with your original screenshot.</li>
-    </ul>
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <h3>Contact Us</h3>
+      <p>We reply fast — usually within a few hours. Reach us on WhatsApp for the quickest response.</p>
+      <div class="contact-btns">
+        <a class="contact-btn whatsapp" href="https://wa.me/17572956292" target="_blank" rel="noopener noreferrer">📱 WhatsApp Us</a>
+        <a class="contact-btn messenger" href="https://m.me/FreeIphonesandTablets" target="_blank" rel="noopener noreferrer">💬 Messenger</a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏆</div>
+      <h3>Tips for Winners</h3>
+      <ul>
+        <li>Screenshot your winning result immediately before doing anything else.</li>
+        <li>Your Messenger name should match your real name for faster verification.</li>
+        <li>Double-check your delivery address before sending it to us.</li>
+        <li>Your prize is reserved for 24 hours — claim it quickly!</li>
+        <li>No reply within 48 hours? Send a follow-up with your original screenshot.</li>
+      </ul>
+    </div>
   </div>
 </div>
 
-<!-- ABOUT PAGE -->
-<div class="page" id="page-about">
-  <h2 class="inner-title">About SpinWin</h2>
-  <p class="inner-sub">Real prizes. Real winners. Every single day.</p>
-  <div class="card">
-    <div class="card-icon">🎯</div>
-    <h3>What Is SpinWin?</h3>
-    <p>SpinWin is a free daily prize giveaway where anyone can spin the wheel and win real tech products and cash — no purchase required, no hidden fees. Every day, 30 prizes are up for grabs across 7 prize tiers including iPhones, MacBooks, iPads, laptops, gift cards, and a $3,000 cash jackpot. The wheel spins, the prize lands, and we make it happen.</p>
-  </div>
-  <div class="card">
-    <div class="card-icon">💡</div>
-    <h3>Why We Do This</h3>
-    <p>We started SpinWin with one goal: give everyday people a real shot at winning something meaningful, completely for free. Most giveaways are rigged, buried in fine print, or never actually pay out. SpinWin is different — every win is personally verified and every prize is real. We cap the daily pool at 30 not to be restrictive, but to make sure every winner actually gets their prize without exception. Fewer winners, more certainty.</p>
-  </div>
-  <div class="card">
-    <div class="card-icon">📊</div>
-    <h3>By the Numbers</h3>
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-num">13</div><div class="stat-lbl">Wheel Segments</div></div>
-      <div class="stat-card"><div class="stat-num">30</div><div class="stat-lbl">Prizes Per Day</div></div>
-      <div class="stat-card"><div class="stat-num">$3K</div><div class="stat-lbl">Cash Jackpot</div></div>
-      <div class="stat-card"><div class="stat-num">54%</div><div class="stat-lbl">Win Chance</div></div>
-      <div class="stat-card"><div class="stat-num">4hr</div><div class="stat-lbl">Spin Cooldown</div></div>
-      <div class="stat-card"><div class="stat-num">24hr</div><div class="stat-lbl">Prize Hold</div></div>
+<!-- ABOUT MODAL -->
+<div class="page-modal-overlay hidden" id="modal-about">
+  <div class="page-modal-box">
+    <button class="page-modal-close" onclick="closePageModal('about')">✕</button>
+    <h2 class="inner-title">About SpinWin</h2>
+    <p class="inner-sub">Real prizes. Real winners. Every single day.</p>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h3>What Is SpinWin?</h3>
+      <p>SpinWin is a free daily prize giveaway where anyone can spin the wheel and win real tech products and cash — no purchase required, no hidden fees. Every day, 30 prizes are up for grabs across 7 prize tiers including iPhones, MacBooks, iPads, laptops, gift cards, and a $3,000 cash jackpot. The wheel spins, the prize lands, and we make it happen.</p>
     </div>
-  </div>
-  <div class="card">
-    <div class="card-icon">🎁</div>
-    <h3>Current Prize Pool</h3>
-    <ul>
-      <li>📱 iPhone 17 Pro Max</li>
-      <li>💻 MacBook Pro</li>
-      <li>🖥️ iPad Pro</li>
-      <li>📟 Samsung Galaxy Tab S9</li>
-      <li>💻 HP Laptop</li>
-      <li>🎁 $500 Gift Card</li>
-      <li>💰 $3,000 Cash — Jackpot (triggered at spin milestone)</li>
-    </ul>
-  </div>
-  <div class="card">
-    <div class="card-icon">🤝</div>
-    <h3>How We Verify Winners</h3>
-    <p>Every winner is contacted directly via Facebook Messenger. You'll need to provide your full name, a phone number, and a delivery address. We verify each claim personally before arranging shipping. No winner has ever been asked to pay anything before their prize is confirmed and dispatched. If you ever feel unsure at any point, message us on WhatsApp first.</p>
-  </div>
-  <div class="card">
-    <div class="card-icon">⚖️</div>
-    <h3>Legal &amp; Fairness</h3>
-    <p>SpinWin is not sponsored, endorsed or administered by Meta/Facebook. Open to US residents aged 18 and over. Prize selection is fully server-side randomized — the outcome is determined on our server, not in your browser. The daily pool is tracked server-side and shared across all players in real time. Void where prohibited by law. By participating, you agree to be contacted via Messenger for prize delivery coordination.</p>
+    <div class="card">
+      <div class="card-icon">💡</div>
+      <h3>Why We Do This</h3>
+      <p>We started SpinWin with one goal: give everyday people a real shot at winning something meaningful, completely for free. Most giveaways are rigged, buried in fine print, or never actually pay out. SpinWin is different — every win is personally verified and every prize is real. We cap the daily pool at 30 not to be restrictive, but to make sure every winner actually gets their prize without exception. Fewer winners, more certainty.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>By the Numbers</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-num">13</div><div class="stat-lbl">Wheel Segments</div></div>
+        <div class="stat-card"><div class="stat-num">30</div><div class="stat-lbl">Prizes Per Day</div></div>
+        <div class="stat-card"><div class="stat-num">$3K</div><div class="stat-lbl">Cash Jackpot</div></div>
+        <div class="stat-card"><div class="stat-num">54%</div><div class="stat-lbl">Win Chance</div></div>
+        <div class="stat-card"><div class="stat-num">4hr</div><div class="stat-lbl">Spin Cooldown</div></div>
+        <div class="stat-card"><div class="stat-num">24hr</div><div class="stat-lbl">Prize Hold</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎁</div>
+      <h3>Current Prize Pool</h3>
+      <ul>
+        <li>📱 iPhone 17 Pro Max</li>
+        <li>💻 MacBook Pro</li>
+        <li>🖥️ iPad Pro</li>
+        <li>📟 Samsung Galaxy Tab S9</li>
+        <li>💻 HP Laptop</li>
+        <li>🎁 $500 Gift Card</li>
+        <li>💰 $3,000 Cash — Jackpot (triggered at spin milestone)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤝</div>
+      <h3>How We Verify Winners</h3>
+      <p>Every winner is contacted directly via Facebook Messenger. You'll need to provide your full name, a phone number, and a delivery address. We verify each claim personally before arranging shipping. No winner has ever been asked to pay anything before their prize is confirmed and dispatched. If you ever feel unsure at any point, message us on WhatsApp first.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚖️</div>
+      <h3>Legal &amp; Fairness</h3>
+      <p>SpinWin is not sponsored, endorsed or administered by Meta/Facebook. Open to US residents aged 18 and over. Prize selection is fully server-side randomized — the outcome is determined on our server, not in your browser. The daily pool is tracked server-side and shared across all players in real time. Void where prohibited by law. By participating, you agree to be contacted via Messenger for prize delivery coordination.</p>
+    </div>
   </div>
 </div>
 
@@ -701,7 +722,6 @@ if (!state.reservedUntil) state.reservedUntil = null;
 let serverPoolClaimed = 0;
 let serverPoolLeft    = DAILY_POOL;
 
-let totalRot    = 0;
 let isSpinning  = false;
 let soundOn     = true;
 let cdInterval  = null;
@@ -825,9 +845,8 @@ function startReservedTimer() {
 if (state.reservedUntil && state.reservedUntil > Date.now()) startReservedTimer();
 
 /* ═══════════════════════════════════════════════════════
-   DRAW WHEEL
-   Segments drawn from index 0 at top (12 o'clock).
-   The pointer is at top. Landing calc matches exactly.
+   DRAW WHEEL — canvas only, no CSS transform
+   rotDeg = current visual rotation (0 = segment 0 at top)
 ═══════════════════════════════════════════════════════ */
 function drawWheel(rotDeg) {
   const canvas = document.getElementById('wheelCanvas');
@@ -838,7 +857,7 @@ function drawWheel(rotDeg) {
   const n     = PRIZES.length;
   const slice = (2 * Math.PI) / n;
   const r     = size/2 - 3;
-  const rotR  = rotDeg * Math.PI / 180;
+  const rotR  = (rotDeg % 360) * Math.PI / 180;
   ctx.clearRect(0, 0, size, size);
 
   for (let i = 0; i < n; i++) {
@@ -852,6 +871,7 @@ function drawWheel(rotDeg) {
     ctx.fillStyle = PRIZES[i].color;
     ctx.fill();
 
+    // Divider
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + r * Math.cos(start), cy + r * Math.sin(start));
@@ -873,6 +893,40 @@ function drawWheel(rotDeg) {
   }
 }
 drawWheel(0);
+
+/* ─── Canvas spin animation (replaces CSS transform) ───
+   Uses requestAnimationFrame with an easing curve so the
+   wheel smoothly decelerates and stops EXACTLY on target.
+═══════════════════════════════════════════════════════ */
+let spinStartRot   = 0;   // rotation when spin began (degrees)
+let spinTargetRot  = 0;   // final rotation (degrees)
+let spinStartTime  = 0;
+const SPIN_DURATION = 6000; // ms — matches old CSS 6s
+
+function easeOut(t) {
+  // cubic-bezier(0.15, 0.65, 0.1, 1) approximation
+  return 1 - Math.pow(1 - t, 3.2);
+}
+
+let rafId = null;
+function animateSpin(onComplete) {
+  cancelAnimationFrame(rafId);
+  const start = performance.now();
+  function frame(now) {
+    const elapsed = now - start;
+    const t       = Math.min(elapsed / SPIN_DURATION, 1);
+    const eased   = easeOut(t);
+    const current = spinStartRot + (spinTargetRot - spinStartRot) * eased;
+    drawWheel(current);
+    if (t < 1) {
+      rafId = requestAnimationFrame(frame);
+    } else {
+      drawWheel(spinTargetRot);
+      if (onComplete) onComplete();
+    }
+  }
+  rafId = requestAnimationFrame(frame);
+}
 
 /* ═══════════════════════════════════════════════════════
    PRIZE LEGEND
@@ -1208,42 +1262,34 @@ document.getElementById('spinBtn').addEventListener('click', async () => {
     updateUI(); stopTicks(); spinAudio.pause(); return;
   }
 
-  // Update server pool from response
   serverPoolClaimed = data.poolClaimed;
   serverPoolLeft    = data.poolLeft;
 
-  /* ── WHEEL LANDING CALCULATION ──
-     Pointer is at top (12 o'clock = 270° in canvas coords, but we offset
-     start angle by -PI/2 so segment 0 starts at the top).
-     
-     We want segment[prizeIdx] CENTER to align with the pointer (top).
-     
-     Segment i occupies: i*deg  to  (i+1)*deg   (degrees from top, clockwise)
-     Center of segment i = i*deg + deg/2
-     
-     To bring that center to the top (0°), we need to rotate the wheel by:
-       rotation = (360 - center) % 360
-     
-     We then add enough full rotations for a good spin effect.
-  */
+  /* ── LANDING CALCULATION ──────────────────────────────
+     Pointer sits at top = 0° (12 o'clock).
+     Segment i center (degrees from top, clockwise):
+       segCenter = i * deg + deg/2
+     To place that center under the pointer we need the
+     wheel's total rotation (mod 360) to equal:
+       target = (360 - segCenter) % 360
+     We spin several full extra rotations for effect.
+  ─────────────────────────────────────────────────────── */
   let prizeIdx = PRIZES.findIndex(p => p.name === data.prize);
   if (prizeIdx === -1) prizeIdx = PRIZES.findIndex(p => p.type === 'tryagain');
 
-  const deg        = 360 / PRIZES.length;
-  const extraSpins = (Math.floor(Math.random()*4) + 7) * 360;
-  const segCenter  = prizeIdx * deg + deg / 2;         // degrees from top
-  const targetRot  = (360 - segCenter) % 360;          // how much to rotate to land here
-  const currentMod = ((totalRot % 360) + 360) % 360;   // current wheel position mod 360
-  let   delta      = (targetRot - currentMod + 360) % 360;
-  if (delta < 30)  delta += 360;                        // always spin meaningfully
-  totalRot += extraSpins + delta;
+  const deg        = 360 / PRIZES.length;          // 27.69°
+  const segCenter  = prizeIdx * deg + deg / 2;      // center of winning segment
+  const target     = (360 - segCenter % 360 + 360) % 360; // wheel angle that puts it at top
+  const extraSpins = (Math.floor(Math.random() * 4) + 8) * 360;
+  const curMod     = ((spinTargetRot % 360) + 360) % 360;
+  let   delta      = (target - curMod + 360) % 360;
+  if (delta < 45)  delta += 360;                    // guarantee a meaningful spin
 
-  const wheel = document.getElementById('wheel');
-  wheel.style.transition = 'transform 6s cubic-bezier(0.15,0.65,0.1,1)';
-  wheel.style.transform  = `rotate(${totalRot}deg)`;
-  drawWheel(totalRot % 360);
+  spinStartRot  = spinTargetRot;
+  spinTargetRot = spinTargetRot + extraSpins + delta;
 
-  setTimeout(() => {
+  animateSpin(() => {
+    // spin animation complete
     stopTicks();
     spinAudio.pause(); spinAudio.currentTime = 0;
     playDrumRoll(1.2);
@@ -1301,7 +1347,13 @@ document.getElementById('spinBtn').addEventListener('click', async () => {
         setTimeout(() => { document.getElementById('wheelWrap').className = 'wheel-section'; }, 3500);
       }
     }, 1300);
-  }, 6200);
+  });
+
+  // ticks stop just before animation ends
+  setTimeout(() => {
+    stopTicks();
+    spinAudio.pause(); spinAudio.currentTime = 0;
+  }, SPIN_DURATION - 200);
 });
 
 /* ═══════════════════════════════════════════════════════
@@ -1344,7 +1396,7 @@ function recordInvite() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   ACCORDIONS & NAV
+   ACCORDIONS
 ═══════════════════════════════════════════════════════ */
 function toggleHow() {
   const b = document.getElementById('howBody'), c = document.getElementById('howChev');
@@ -1357,10 +1409,39 @@ function toggleFaq(el) {
   document.querySelectorAll('.fchev').forEach(x => x.textContent = '▼');
   if (!open) { a.classList.add('open'); c.textContent = '▲'; }
 }
+
+/* ═══════════════════════════════════════════════════════
+   PAGE MODALS (Support / About) & NAV
+═══════════════════════════════════════════════════════ */
+function openPageModal(id) {
+  document.getElementById('modal-' + id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closePageModal(id) {
+  document.getElementById('modal-' + id).classList.add('hidden');
+  document.body.style.overflow = '';
+}
+// Close modal on overlay click (outside the box)
+document.querySelectorAll('.page-modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      this.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  });
+});
+// Close on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.page-modal-overlay:not(.hidden)').forEach(m => {
+      m.classList.add('hidden');
+      document.body.style.overflow = '';
+    });
+  }
+});
 function showPage(id, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Only the game tab uses this now
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
   if (btn) btn.classList.add('active');
   window.scrollTo({top:0, behavior:'smooth'});
 }
