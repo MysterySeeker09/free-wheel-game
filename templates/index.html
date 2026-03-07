@@ -246,6 +246,40 @@
     .wheel-win #wheel{animation:winRing .85s ease-in-out 4}
     .wheel-cash #wheel{animation:cashRing .7s ease-in-out 5}
 
+    /* INVITE MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;
+      display:flex;align-items:center;justify-content:center;padding:16px;
+      animation:fadeIn .25s ease both}
+    .modal-overlay.hidden{display:none}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-box{background:linear-gradient(160deg,var(--surface2),var(--surface3));
+      border:1px solid rgba(245,200,66,.3);border-radius:22px;
+      max-width:420px;width:100%;padding:28px 24px;text-align:center;
+      animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;position:relative}
+    .modal-close{position:absolute;top:12px;right:14px;background:none;border:none;
+      color:var(--muted);font-size:1.3em;cursor:pointer;line-height:1;padding:4px}
+    .modal-close:hover{color:var(--text)}
+    .modal-icon{font-size:2.8em;margin-bottom:8px}
+    .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.9em;letter-spacing:2px;
+      color:var(--gold);margin-bottom:6px}
+    .modal-sub{font-size:.88em;color:var(--muted);line-height:1.6;margin-bottom:18px}
+    .modal-sub strong{color:var(--text)}
+    .invite-count{display:flex;justify-content:center;gap:8px;margin-bottom:18px}
+    .ic-dot{width:13px;height:13px;border-radius:50%;background:#252535;border:2px solid var(--muted);transition:all .4s}
+    .ic-dot.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(245,200,66,.6)}
+    .modal-fb-btn{display:inline-flex;align-items:center;gap:8px;
+      font-family:'Bebas Neue',sans-serif;font-size:1.35em;letter-spacing:2px;
+      padding:13px 36px;border-radius:50px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,#1877f2,#0d5abf);color:#fff;
+      box-shadow:0 5px 20px rgba(24,119,242,.4);transition:transform .15s,box-shadow .15s;
+      text-decoration:none;margin-bottom:10px}
+    .modal-fb-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(24,119,242,.55)}
+    .modal-skip{background:none;border:none;color:var(--muted);font-size:.82em;
+      cursor:pointer;text-decoration:underline;padding:4px}
+    .modal-skip:hover{color:var(--text)}
+    .modal-progress{font-size:.78em;color:var(--muted);margin-top:12px}
+    .modal-progress span{color:var(--gold);font-weight:800}
+
     @media(max-width:480px){
       #spinBtn{font-size:1.55em;padding:13px 46px}
       .legend-grid{grid-template-columns:repeat(2,1fr)}
@@ -255,6 +289,33 @@
 </head>
 <body>
 <div class="ambient"></div>
+
+<!-- INVITE MODAL -->
+<div class="modal-overlay hidden" id="inviteModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeInviteModal()">✕</button>
+    <div class="modal-icon">🎉</div>
+    <div class="modal-title">You Won!</div>
+    <p class="modal-sub">Help spread the joy — <strong>invite 2 to 5 friends or family</strong> to our Facebook page and unlock your prize claim!</p>
+    <div class="invite-count" id="inviteDots"></div>
+    <a class="modal-fb-btn" id="inviteFbBtn"
+       href="https://www.facebook.com/FreeIphonesandTablets"
+       target="_blank" rel="noopener noreferrer"
+       onclick="recordInvite()">
+      👥 Invite Friends on Facebook
+    </a><br>
+    <div class="modal-progress">Invited: <span id="inviteCountNum">0</span> / 2 minimum</div>
+    <div id="claimUnlockWrap" style="display:none;margin-top:14px">
+      <p style="font-size:.82em;color:var(--green);font-weight:800;margin-bottom:10px">✅ Minimum reached! You can now claim your prize.</p>
+      <a id="modalClaimLink" href="#" target="_blank" rel="noopener noreferrer">
+        <button id="claimBtn" style="font-family:'Bebas Neue',sans-serif;font-size:1.35em;letter-spacing:2px;padding:12px 40px;background:linear-gradient(135deg,#4a9eff,#1565c0);color:#fff;border:none;border-radius:50px;cursor:pointer;box-shadow:0 5px 18px rgba(74,158,255,.4)">💬 Claim via Messenger</button>
+      </a>
+    </div>
+    <div style="margin-top:8px">
+      <button class="modal-skip" onclick="skipInvite()">Skip for now (claim without inviting)</button>
+    </div>
+  </div>
+</div>
 
 <nav>
   <div class="nav-logo">🎡 SpinWin</div>
@@ -284,7 +345,7 @@
 
   <div class="spin-status">
     <div class="spins-bar">
-      <span class="spins-label">Today's Spins</span>
+    <span class="spins-label">Spin Available</span>
       <div class="spins-dots" id="spinDots"></div>
     </div>
     <div class="countdown-bar" id="countdownBar">
@@ -325,8 +386,8 @@
   </div>
 
   <div class="no-spins" id="noSpinsMsg">
-    <strong>🎡 All 3 spins used this session!</strong><br>
-    You get 3 spins every 4 hours. The countdown above shows exactly when you're back.
+    <strong>🎡 Spin used — come back in 4 hours!</strong><br>
+    Your next free spin unlocks when the countdown above hits zero.
   </div>
 
   <div class="history-section">
@@ -344,7 +405,7 @@
       <span>📖 How to Play</span><span class="chevron" id="howChev">▼</span>
     </div>
     <div class="how-body" id="howBody">
-      <div class="how-step"><div class="step-num">1</div><div class="step-text"><strong>Click "SPIN NOW!"</strong> — you get 1 spin per session, 3 sessions every 4 hours.</div></div>
+      <div class="how-step"><div class="step-num">1</div><div class="step-text"><strong>Click "SPIN NOW!"</strong> — you get <strong>1 free spin</strong> every 4 hours.</div></div>
       <div class="how-step"><div class="step-num">2</div><div class="step-text">The wheel lands on your prize — could be an <strong>iPhone, iPad, MacBook, $3,000 Cash</strong> or Try Again!</div></div>
       <div class="how-step"><div class="step-num">3</div><div class="step-text">When you win, click <strong>"Claim via Messenger"</strong> and send your name, phone &amp; delivery address.</div></div>
       <div class="how-step"><div class="step-num">4</div><div class="step-text">Our team <strong>verifies &amp; ships</strong> your prize straight to your door!</div></div>
@@ -365,7 +426,7 @@
     <div class="card-icon">❓</div>
     <h3>Frequently Asked Questions</h3>
     <div class="faq-q" onclick="toggleFaq(this)">How many spins do I get? <span class="fchev">▼</span></div>
-    <div class="faq-a">You get <strong>1 spin per session</strong> and can return up to <strong>3 times every 4 hours</strong>. The countdown timer shows exactly when your next spin unlocks.</div>
+    <div class="faq-a">You get <strong>1 free spin every 4 hours</strong>. The countdown timer on the game page shows exactly when your next spin unlocks.</div>
     <div class="faq-q" onclick="toggleFaq(this)">What can I win? <span class="fchev">▼</span></div>
     <div class="faq-a">Prizes include iPhone 15 Pro Max, iPhone 16, iPhone 17 Pro Max, iPad, Samsung Tablet, MacBook Pro, HP Laptop, Dell Laptop, and a <strong>$3,000 Cash Prize</strong>. There's also a "Try Again" — keep spinning!</div>
     <div class="faq-q" onclick="toggleFaq(this)">Is this free? <span class="fchev">▼</span></div>
@@ -454,7 +515,7 @@ const PRIZES = [
 
 /* ── STATE ── */
 const SK = 'spinwin_v5';
-const MAX_SPINS = 3;
+const MAX_SPINS = 1;
 const COOLDOWN  = 4 * 60 * 60 * 1000;
 
 function loadState(){try{return JSON.parse(localStorage.getItem(SK))||{};}catch(e){return{};}}
@@ -681,9 +742,19 @@ document.getElementById('spinBtn').addEventListener('click',async()=>{
 
   const prizeIdx=PRIZES.findIndex(p=>p.name===data.prize);
   const deg=360/PRIZES.length;
-  const extra=(Math.floor(Math.random()*4)+6)*360;
-  const stop=360-(prizeIdx*deg+deg/2);
-  totalRot+=extra+stop;
+  // Extra full rotations for spin effect (6-9 full turns)
+  const extraSpins=(Math.floor(Math.random()*4)+6)*360;
+  // The pointer is at the top (0°). Segment i has its midpoint at i*deg degrees
+  // on the unrotated wheel. To land segment i under the pointer we need the
+  // wheel rotated so that midpoint is at 0° (top). We work in the range 0-360
+  // and add enough to always spin forward.
+  const segMid = prizeIdx * deg + deg / 2;       // midpoint of prize segment on unrotated wheel
+  const currentMod = totalRot % 360;              // where wheel currently sits (mod 360)
+  const needed = (360 - segMid % 360) % 360;      // how much rotation puts segMid at top
+  // how many degrees we still need to add on top of currentMod to reach `needed`
+  let delta = (needed - currentMod + 360) % 360;
+  if (delta < 10) delta += 360;                   // ensure at least a little movement
+  totalRot += extraSpins + delta;
   const wheel=document.getElementById('wheel');
   wheel.style.transition='transform 6s cubic-bezier(0.15,0.65,0.1,1)';
   wheel.style.transform=`rotate(${totalRot}deg)`;
@@ -722,8 +793,10 @@ document.getElementById('spinBtn').addEventListener('click',async()=>{
         badge.textContent=`${prize.emoji} ${prize.name}`;
         badge.className=`claim-prize-badge${isCash?' cash':''}`;
         const msg=encodeURIComponent(`🏆 I won ${prize.name} on SpinWin! My delivery details: `);
-        document.getElementById('claimLink').href=`https://m.me/FreeIphonesandTablets?text=${msg}`;
-        document.getElementById('claimSection').style.display='block';
+        const messengerUrl=`https://m.me/FreeIphonesandTablets?text=${msg}`;
+        document.getElementById('claimLink').href=messengerUrl;
+        // Open invite modal first, claim unlocks after inviting
+        openInviteModal(messengerUrl);
         setTimeout(()=>{document.getElementById('wheelWrap').className='wheel-section';},3500);
       }
     },1300);
@@ -737,6 +810,56 @@ function toggleFaq(el){const a=el.nextElementSibling,c=el.querySelector('.fchev'
   document.querySelectorAll('.faq-a').forEach(x=>x.classList.remove('open'));
   document.querySelectorAll('.fchev').forEach(x=>x.textContent='▼');
   if(!open){a.classList.add('open');c.textContent='▲';}}
+
+/* ── INVITE MODAL ── */
+const MIN_INVITES = 2;
+const MAX_INVITES = 5;
+let inviteCount = 0;
+let pendingClaimMsg = '';
+
+function openInviteModal(claimMsg) {
+  pendingClaimMsg = claimMsg;
+  inviteCount = 0;
+  renderInviteDots();
+  document.getElementById('inviteCountNum').textContent = '0';
+  document.getElementById('claimUnlockWrap').style.display = 'none';
+  document.getElementById('inviteModal').classList.remove('hidden');
+}
+
+function closeInviteModal() {
+  document.getElementById('inviteModal').classList.add('hidden');
+  // Show the regular claim section behind the modal too
+  document.getElementById('claimSection').style.display = 'block';
+}
+
+function skipInvite() {
+  closeInviteModal();
+}
+
+function renderInviteDots() {
+  const wrap = document.getElementById('inviteDots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < MAX_INVITES; i++) {
+    const d = document.createElement('div');
+    d.className = 'ic-dot' + (i < inviteCount ? ' filled' : '');
+    wrap.appendChild(d);
+  }
+}
+
+function recordInvite() {
+  // Each click on the invite button counts as one invite (up to MAX)
+  setTimeout(() => {
+    if (inviteCount < MAX_INVITES) inviteCount++;
+    renderInviteDots();
+    document.getElementById('inviteCountNum').textContent = inviteCount;
+    if (inviteCount >= MIN_INVITES) {
+      const wrap = document.getElementById('claimUnlockWrap');
+      const link = document.getElementById('modalClaimLink');
+      link.href = pendingClaimMsg;
+      wrap.style.display = 'block';
+    }
+  }, 800); // slight delay so it feels like Facebook opened
+}
 
 /* ── NAV ── */
 function showPage(id,btn){
