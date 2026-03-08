@@ -829,7 +829,8 @@ if (state.reservedUntil && state.reservedUntil > Date.now()) startReservedTimer(
    Segments drawn from index 0 at top (12 o'clock).
    The pointer is at top. Landing calc matches exactly.
 ═══════════════════════════════════════════════════════ */
-function drawWheel(rotDeg) {
+function drawWheel() {
+  // Canvas always draws at 0 rotation — CSS transform on #wheel handles spinning
   const canvas = document.getElementById('wheelCanvas');
   const size   = canvas.offsetWidth || 340;
   canvas.width = canvas.height = size;
@@ -838,13 +839,14 @@ function drawWheel(rotDeg) {
   const n     = PRIZES.length;
   const slice = (2 * Math.PI) / n;
   const r     = size/2 - 3;
-  const rotR  = rotDeg * Math.PI / 180;
   ctx.clearRect(0, 0, size, size);
 
   for (let i = 0; i < n; i++) {
-    const start = rotR + i * slice - Math.PI/2;
+    // Segment 0 starts at top (12 o'clock = -PI/2)
+    const start = i * slice - Math.PI/2;
     const end   = start + slice;
 
+    // Fill segment
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, start, end);
@@ -852,6 +854,7 @@ function drawWheel(rotDeg) {
     ctx.fillStyle = PRIZES[i].color;
     ctx.fill();
 
+    // Divider line
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(cx + r * Math.cos(start), cy + r * Math.sin(start));
@@ -859,20 +862,20 @@ function drawWheel(rotDeg) {
     ctx.lineWidth   = 2;
     ctx.stroke();
 
-    // Emoji
+    // Emoji — use Apple Color Emoji / Segoe UI Emoji for proper rendering
     const mid  = start + slice / 2;
     const emoR = r * 0.62;
     ctx.save();
     ctx.translate(cx + emoR * Math.cos(mid), cy + emoR * Math.sin(mid));
     ctx.rotate(mid + Math.PI/2);
-    ctx.font         = `${Math.max(14, size * 0.052)}px serif`;
+    ctx.font         = `${Math.max(16, size * 0.056)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif`;
     ctx.textAlign    = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(PRIZES[i].emoji, 0, 0);
     ctx.restore();
   }
 }
-drawWheel(0);
+drawWheel();
 
 /* ═══════════════════════════════════════════════════════
    PRIZE LEGEND
@@ -1360,7 +1363,7 @@ document.getElementById('spinBtn').addEventListener('click', async () => {
   const wheel = document.getElementById('wheel');
   wheel.style.transition = 'transform 6s cubic-bezier(0.15,0.65,0.1,1)';
   wheel.style.transform  = `rotate(${totalRot}deg)`;
-  drawWheel(totalRot % 360);
+  // wheel CSS handles rotation — canvas is static
 
   setTimeout(() => {
     stopTicks();
